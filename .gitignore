@@ -1,0 +1,7 @@
+.idea/
+.superpowers/
+.worktrees/
+docs/
+node_modules/
+.next/
+out/
