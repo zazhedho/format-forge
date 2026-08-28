@@ -22,5 +22,5 @@ export default [
     },
     rules: nextPlugin.configs['core-web-vitals'].rules,
   },
-  { ignores: ['.next/**', 'out/**', 'node_modules/**'] },
+  { ignores: ['.next/**', 'out/**', 'node_modules/**', '.worktrees/**'] },
 ]
