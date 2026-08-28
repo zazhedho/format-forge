@@ -1,8 +1,7 @@
 'use client'
 
-import { useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent, type UIEvent } from 'react'
-import { IndentGuides } from './indent-guides'
-import { UploadIcon, TrashIcon } from './icons'
+import { useLayoutEffect, useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from 'react'
+import { UploadIcon } from './icons'
 
 type Props = {
   value: string
@@ -22,15 +21,36 @@ function preserveScrollPosition(event: ClipboardEvent<HTMLTextAreaElement>) {
 
 export function JsonEditor({ value, onChange, onUpload }: Props) {
   const [isDragging, setIsDragging] = useState(false)
-  const lineNumbersRef = useRef<HTMLDivElement>(null)
-  const guideLayerRef = useRef<HTMLDivElement>(null)
+  const gutterRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const measureRef = useRef<HTMLDivElement>(null)
 
-  // Compute live editor stats
+  // Compute live line count and stats
   const lineCount = Math.max(1, value.split('\n').length)
-  const charCount = value.length
   const byteSize = new Blob([value]).size
   const formattedSize =
     byteSize > 1024 ? `${(byteSize / 1024).toFixed(1)} KB` : `${byteSize} B`
+
+  useLayoutEffect(() => {
+    const measure = measureRef.current
+    const gutter = gutterRef.current
+    if (!measure || !gutter) return
+
+    const syncLineHeights = () => {
+      const measuredLines = measure.querySelectorAll<HTMLElement>('.measure-line')
+      const gutterLines = gutter.querySelectorAll<HTMLElement>('.gutter-line')
+      gutterLines.forEach((gutterLine, index) => {
+        const height = measuredLines[index]?.getBoundingClientRect().height ?? 22
+        gutterLine.style.height = `${height}px`
+        gutterLine.style.lineHeight = '22px'
+      })
+    }
+
+    syncLineHeights()
+    const observer = new ResizeObserver(syncLineHeights)
+    observer.observe(measure)
+    return () => observer.disconnect()
+  }, [value])
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Tab') {
@@ -46,13 +66,9 @@ export function JsonEditor({ value, onChange, onUpload }: Props) {
     }
   }
 
-  function handleScroll(event: UIEvent<HTMLTextAreaElement>) {
-    const { scrollLeft, scrollTop } = event.currentTarget
-    if (lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = scrollTop
-    }
-    if (guideLayerRef.current) {
-      guideLayerRef.current.style.transform = `translate(${-scrollLeft}px, ${-scrollTop}px)`
+  function handleScroll() {
+    if (gutterRef.current && textareaRef.current) {
+      gutterRef.current.scrollTop = textareaRef.current.scrollTop
     }
   }
 
@@ -88,31 +104,6 @@ export function JsonEditor({ value, onChange, onUpload }: Props) {
             </span>
           )}
         </div>
-        <div className="toolbar-group">
-          <label className="file-button" title="Upload JSON file">
-            <UploadIcon />
-            <span>File</span>
-            <input
-              type="file"
-              accept=".json,.txt,application/json,text/plain"
-              onChange={(event) => {
-                const file = event.target.files?.[0]
-                if (file) onUpload(file)
-                event.currentTarget.value = ''
-              }}
-            />
-          </label>
-          {value && (
-            <button
-              className="button button-quiet button-danger"
-              type="button"
-              onClick={() => onChange('')}
-              title="Clear input"
-            >
-              <TrashIcon />
-            </button>
-          )}
-        </div>
       </div>
       <div
         className="editor-wrapper"
@@ -126,27 +117,31 @@ export function JsonEditor({ value, onChange, onUpload }: Props) {
             <span>Drop JSON file to load</span>
           </div>
         )}
-        <div
-          ref={lineNumbersRef}
-          className="line-number-gutter"
-          aria-hidden="true"
-          style={{ width: `calc(${Math.max(2, String(lineCount).length)}ch + 20px)` }}
-        >
-          {Array.from({ length: lineCount }, (_, index) => (
-            <span key={index}>{index + 1}</span>
-          ))}
-        </div>
-        <div className="code-content-wrapper">
-          <IndentGuides value={value} layerRef={guideLayerRef} />
+        <div className="editor-container">
+          <div ref={gutterRef} className="editor-gutter" aria-hidden="true">
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div key={i} className="gutter-line">
+                {i + 1}
+              </div>
+            ))}
+          </div>
+          <div ref={measureRef} className="input-line-measure" aria-hidden="true">
+            {value.split('\n').map((line, index) => (
+              <div key={index} className="measure-line">
+                {line || '\u200b'}
+              </div>
+            ))}
+          </div>
           <textarea
-            className="json-editor"
+            ref={textareaRef}
+            className="json-editor scroller"
             value={value}
             onChange={(event) => onChange(event.target.value)}
             onPaste={preserveScrollPosition}
             onKeyDown={handleKeyDown}
             onScroll={handleScroll}
-            wrap="off"
             spellCheck={false}
+            wrap="soft"
             aria-label="JSON input"
             placeholder="Paste or type JSON here, or drag and drop a .json file..."
           />

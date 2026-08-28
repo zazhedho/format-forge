@@ -1,4 +1,4 @@
-import type { ToolId } from '@/lib/tools/registry'
+import { getTool, type ToolId } from '@/lib/tools/registry'
 import {
   SparklesIcon,
   UploadIcon,
@@ -37,6 +37,7 @@ export function ToolToolbar({
   return (
     <div className="tool-toolbar" aria-label="Tool actions">
       <div className="toolbar-section" role="group" aria-label="Input actions">
+        <h1 className="tool-title">{getTool(toolId).title}</h1>
         <span className="toolbar-label">Input</span>
         <div className="toolbar-group">
           <button className="button button-primary" type="button" onClick={onSample} title="Load sample JSON">

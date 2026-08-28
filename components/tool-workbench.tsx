@@ -11,6 +11,7 @@ import { StatusMessage } from './status-message'
 import { TableView } from './table-view'
 import { TextOutput } from './text-output'
 import { ToolToolbar } from './tool-toolbar'
+import { useToolSession } from './app-shell'
 import {
   ShieldCheckIcon,
   AlertCircleIcon,
@@ -19,8 +20,7 @@ import {
 } from './icons'
 
 export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
-  const [source, setSource] = useState(samples[toolId])
-  const [formatMode, setFormatMode] = useState<'pretty' | 'minify'>('pretty')
+  const { source, setSource, formatMode, setFormatMode } = useToolSession(toolId)
   const [fullscreen, setFullscreen] = useState(false)
   const [notice, setNotice] = useState('')
   const [copied, setCopied] = useState(false)
@@ -30,6 +30,7 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
     () => runTool(toolId, source, { formatMode }),
     [toolId, source, formatMode]
   )
+  const hasSource = source.trim().length > 0
 
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
@@ -98,7 +99,10 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
   }, [source])
 
   return (
-    <div className={fullscreen ? 'workbench workbench-fullscreen' : 'workbench'}>
+    <div
+      className={fullscreen ? 'workbench workbench-fullscreen' : 'workbench'}
+      data-tool-id={toolId}
+    >
       {fullscreen && (
         <div
           style={{
@@ -170,7 +174,7 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
         <section className="pane output-pane" aria-label="Tool output" aria-live="polite">
           <div className="pane-header">
             <span>OUTPUT</span>
-            {!(result.ok && result.output.kind === 'status') && (
+            {hasSource && !(result.ok && result.output.kind === 'status') && (
               <StatusMessage error={result.ok ? undefined : result.error} />
             )}
           </div>
@@ -212,7 +216,7 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
             </div>
           )}
 
-          {!result.ok && (
+          {hasSource && !result.ok && (
             <div className="error-output-card">
               <div className="error-card-box">
                 <div className="error-card-header">

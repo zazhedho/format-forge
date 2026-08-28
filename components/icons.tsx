@@ -184,7 +184,7 @@ export function ForgeLogo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 32 32" width="26" height="26" fill="none" aria-hidden="true" {...props}>
       <rect width="32" height="32" rx="8" fill="#0f172a" stroke="#334155" strokeWidth="1.2" />
-      <path d="M9 8h14v4H14v3h7v4h-7v4h9v4H9z" fill="#fbbf24" />
+      <path d="M9 8h14v4H14v3h7v4h-7v5H9z" fill="#fbbf24" />
     </svg>
   )
 }

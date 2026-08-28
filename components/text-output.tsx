@@ -1,21 +1,8 @@
-import { useRef, type UIEvent } from 'react'
+'use client'
+
+import { useLayoutEffect, useRef, useMemo, type KeyboardEvent, type FormEvent, type ClipboardEvent, type DragEvent } from 'react'
+import { highlightJson } from '@/lib/json/highlight'
 import { CheckIcon, InfoIcon } from './icons'
-import { IndentGuides } from './indent-guides'
-import { selectAllContents } from './output-selection'
-
-function handleOutputKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
-    event.preventDefault()
-    selectAllContents(event.currentTarget)
-    return
-  }
-
-  if (event.ctrlKey || event.metaKey || event.altKey) return
-
-  if (event.key.length === 1 || ['Backspace', 'Delete', 'Enter'].includes(event.key)) {
-    event.preventDefault()
-  }
-}
 
 export function TextOutput({
   value,
@@ -24,54 +11,129 @@ export function TextOutput({
   value: string
   warnings?: string[]
 }) {
-  const lineNumbersRef = useRef<HTMLDivElement>(null)
-  const guideLayerRef = useRef<HTMLDivElement>(null)
-  const lineCount = Math.max(1, value.split('\n').length)
+  const gutterRef = useRef<HTMLDivElement>(null)
+  const codeAreaRef = useRef<HTMLDivElement>(null)
 
-  function handleScroll(event: UIEvent<HTMLDivElement>) {
-    const { scrollLeft, scrollTop } = event.currentTarget
-    if (lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = scrollTop
+  const highlightedLines = useMemo(() => highlightJson(value), [value])
+  const lineCount = highlightedLines.length > 0 ? highlightedLines.length : (value ? value.split('\n').length : 1)
+
+  useLayoutEffect(() => {
+    const codeArea = codeAreaRef.current
+    const gutter = gutterRef.current
+    if (!codeArea || !gutter) return
+
+    const syncLineHeights = () => {
+      const codeLines = codeArea.querySelectorAll<HTMLElement>('.code-line')
+      const gutterLines = gutter.querySelectorAll<HTMLElement>('.gutter-line')
+      gutterLines.forEach((gutterLine, index) => {
+        const height = codeLines[index]?.getBoundingClientRect().height ?? 22
+        gutterLine.style.height = `${height}px`
+        gutterLine.style.lineHeight = '22px'
+      })
     }
-    if (guideLayerRef.current) {
-      guideLayerRef.current.style.transform = `translate(${-scrollLeft}px, ${-scrollTop}px)`
+
+    syncLineHeights()
+    const observer = new ResizeObserver(syncLineHeights)
+    observer.observe(codeArea)
+    return () => observer.disconnect()
+  }, [highlightedLines])
+
+  function handleScroll() {
+    if (gutterRef.current && codeAreaRef.current) {
+      gutterRef.current.scrollTop = codeAreaRef.current.scrollTop
     }
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // Allow navigation keys and shortcut combinations
+    const allowedNavigationKeys = [
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+      'PageUp',
+      'PageDown',
+    ]
+
+    if (allowedNavigationKeys.includes(e.key)) {
+      return
+    }
+
+    // Allow Cmd/Ctrl + C (copy), Cmd/Ctrl + A (select all)
+    if ((e.metaKey || e.ctrlKey) && ['c', 'a'].includes(e.key.toLowerCase())) {
+      return
+    }
+
+    // Prevent modifying the read-only formatted output
+    e.preventDefault()
+  }
+
+  function handleBeforeInput(e: FormEvent<HTMLDivElement>) {
+    e.preventDefault()
+  }
+
+  function handlePaste(e: ClipboardEvent<HTMLDivElement>) {
+    e.preventDefault()
+  }
+
+  function handleDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault()
   }
 
   return (
     <div className="text-output">
-      <div className="output-wrapper">
-        <div
-          ref={lineNumbersRef}
-          className="line-number-gutter"
-          aria-hidden="true"
-          style={{ width: `calc(${Math.max(2, String(lineCount).length)}ch + 20px)` }}
-        >
-          {Array.from({ length: lineCount }, (_, index) => (
-            <span key={index}>{index + 1}</span>
+      <div className="output-stage">
+        <div ref={gutterRef} className="editor-gutter" aria-hidden="true">
+          {Array.from({ length: lineCount }, (_, i) => (
+            <div key={i} className="gutter-line">
+              {i + 1}
+            </div>
           ))}
         </div>
-        <div className="code-content-wrapper">
-          <IndentGuides value={value} layerRef={guideLayerRef} />
-          <div
-            className="output-content"
-            tabIndex={0}
-            role="textbox"
-            aria-label="JSON output"
-            aria-readonly="true"
-            contentEditable={true}
-            suppressContentEditableWarning
-            spellCheck={false}
-            onBeforeInput={(event) => event.preventDefault()}
-            onPaste={(event) => event.preventDefault()}
-            onDrop={(event) => event.preventDefault()}
-            onKeyDown={handleOutputKeyDown}
-            onScroll={handleScroll}
-          >
-            {value}
-          </div>
+
+        <div
+          ref={codeAreaRef}
+          className="output-code-area scroller"
+          contentEditable={true}
+          suppressContentEditableWarning={true}
+          onKeyDown={handleKeyDown}
+          onBeforeInput={handleBeforeInput}
+          onPaste={handlePaste}
+          onDrop={handleDrop}
+          onScroll={handleScroll}
+          spellCheck={false}
+          role="textbox"
+          aria-multiline="true"
+          aria-readonly="true"
+          aria-label="Formatted JSON output"
+          tabIndex={0}
+        >
+          {highlightedLines.map((line) => (
+            <div key={line.lineNumber} className="code-line">
+              <span className="line-code">
+                {Array.from({ length: line.indentCount }).map((_, i) => (
+                  <span key={i} className="indent-guide" aria-hidden="true" />
+                ))}
+                {line.tokens.length > 0 ? (
+                  line.tokens.map((token, tokenIdx) => (
+                    <span
+                      key={tokenIdx}
+                      className={`token token-${token.type}`}
+                    >
+                      {token.value}
+                    </span>
+                  ))
+                ) : (
+                  <span className="token-whitespace">&nbsp;</span>
+                )}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
+
       {warnings.length > 0 && (
         <div className="warnings-box">
           <div className="warnings-title">
@@ -80,8 +142,18 @@ export function TextOutput({
           </div>
           <ul className="warnings-list">
             {warnings.map((warning, index) => (
-              <li key={`${warning}-${index}`} style={{ listStyleType: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <CheckIcon style={{ width: 12, height: 12, color: 'var(--accent-emerald)' }} />
+              <li
+                key={`${warning}-${index}`}
+                style={{
+                  listStyleType: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <CheckIcon
+                  style={{ width: 12, height: 12, color: 'var(--accent-emerald)' }}
+                />
                 <span>{warning}</span>
               </li>
             ))}
