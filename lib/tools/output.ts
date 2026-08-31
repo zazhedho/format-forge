@@ -3,7 +3,7 @@ import type { ToolOutput, ToolRunResult } from './run-tool'
 
 export type DownloadData = {
   content: string
-  extension: 'csv' | 'json' | 'yaml' | 'xml'
+  extension: 'csv' | 'json' | 'yaml' | 'xml' | 'go'
   type: string
 }
 
@@ -15,6 +15,8 @@ export function getOutputStatusLabel(output: ToolOutput) {
       return 'Valid YAML'
     case 'xml':
       return 'Valid XML'
+    case 'go':
+      return 'Generated Go'
     case 'status':
       return ''
     default:
@@ -40,6 +42,9 @@ export function downloadData(result: ToolRunResult): DownloadData | null {
   }
   if (result.output.kind === 'xml') {
     return { content: result.output.value, extension: 'xml', type: 'application/xml;charset=utf-8' }
+  }
+  if (result.output.kind === 'go') {
+    return { content: result.output.value, extension: 'go', type: 'text/plain;charset=utf-8' }
   }
   return { content: result.output.value, extension: 'json', type: 'application/json;charset=utf-8' }
 }

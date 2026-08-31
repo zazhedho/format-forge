@@ -8,6 +8,7 @@ import { tableToCsv } from '../json/table-export'
 import { validateJson } from '../json/validate'
 import { jsonToYaml } from '../json/yaml'
 import { jsonToXml, xmlToJson, type JsonToXmlOptions } from '../json/xml'
+import { jsonToGoStruct, type JsonToGoStructOptions } from '../json/go-struct'
 import type { TableModel } from '../json/types'
 import type { ToolId } from './registry'
 
@@ -16,6 +17,7 @@ export type ToolOutput =
   | { kind: 'csv'; value: string; warnings?: string[] }
   | { kind: 'yaml'; value: string; warnings?: string[] }
   | { kind: 'xml'; value: string; warnings?: string[] }
+  | { kind: 'go'; value: string; warnings?: string[] }
   | { kind: 'text'; value: string; warnings?: string[] }
   | { kind: 'status' }
 
@@ -26,7 +28,7 @@ export type ToolRunResult =
 export function runTool(
   toolId: ToolId,
   source: string,
-  options: { formatMode?: 'pretty' | 'minify'; xmlOptions?: JsonToXmlOptions } = {}
+  options: { formatMode?: 'pretty' | 'minify'; xmlOptions?: JsonToXmlOptions; goOptions?: JsonToGoStructOptions } = {}
 ): ToolRunResult {
   if (toolId === 'json-to-table') {
     const parsed = parseJson(source)
@@ -64,6 +66,20 @@ export function runTool(
       return {
         ok: false,
         error: { message: error instanceof Error ? error.message : 'Could not convert XML to JSON' },
+      }
+    }
+  }
+
+  if (toolId === 'json-to-struct') {
+    const parsed = parseJson(source)
+    if (!parsed.ok) return parsed
+
+    try {
+      return { ok: true, output: { kind: 'go', value: jsonToGoStruct(parsed.value, options.goOptions) } }
+    } catch (error) {
+      return {
+        ok: false,
+        error: { message: error instanceof Error ? error.message : 'Could not generate Go struct' },
       }
     }
   }

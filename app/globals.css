@@ -298,7 +298,7 @@ p, blockquote, li, .lede {
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   animation: fade-down 0.18s ease-out;
 }
 
@@ -308,20 +308,29 @@ p, blockquote, li, .lede {
 }
 
 .more-tools-section {
+  display: block;
+  margin-top: 6px;
   font-size: 10px;
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 4px 8px 2px;
+  padding: 8px 8px 4px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.more-tools-section:first-child {
+  margin-top: 0;
 }
 
 .more-tools-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px;
+  margin-left: 8px;
+  padding: 7px 10px 7px 12px;
+  border-left: 2px solid var(--border-default);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-size: 12px;
@@ -332,11 +341,13 @@ p, blockquote, li, .lede {
 .more-tools-item:hover {
   background: var(--bg-surface-elevated);
   color: var(--text-primary);
+  border-left-color: var(--accent-indigo);
 }
 
 .more-tools-item.active {
   color: var(--accent-indigo);
   background: var(--bg-surface-elevated);
+  border-left-color: var(--accent-indigo);
 }
 
 .badge-upcoming {

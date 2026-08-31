@@ -32,6 +32,7 @@ export const samples: Record<ToolId, string> = {
   'json-to-csv': sample,
   'json-to-yaml': sample,
   'json-to-xml': sample,
+  'json-to-struct': sample,
   'xml-to-json': xmlSample,
   'json-formatter': sample,
   'string-to-json': stringSample,

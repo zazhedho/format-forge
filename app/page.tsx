@@ -29,6 +29,7 @@ const toolChips: Record<string, string[]> = {
   'json-to-csv': ['CSV Output', 'Quoted Values', 'Instant Export'],
   'json-to-yaml': ['Readable Output', 'Nested Arrays', 'Instant Copy'],
   'json-to-xml': ['XML Output', 'Custom Options', 'Instant Copy'],
+  'json-to-struct': ['Go Struct', 'JSON Tags', 'Instant Copy'],
   'xml-to-json': ['JSON Output', 'Attributes', 'Instant Copy'],
   'json-formatter': ['2-Space Indent', 'Minify Mode', 'Instant Copy'],
   'json-fixer': ['Trailing Commas', 'Quote Fixes', 'Safe Repair'],

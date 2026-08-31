@@ -55,6 +55,36 @@ describe('runTool', () => {
     })
   })
 
+  it('returns Go struct output for JSON to Struct', () => {
+    expect(runTool('json-to-struct' as never, '{"name":"Maeve"}')).toEqual({
+      ok: true,
+      output: {
+        kind: 'go',
+        value: [
+          'type Root struct {',
+          '\tName string `json:"name"`',
+          '}',
+        ].join('\n'),
+      },
+    })
+  })
+
+  it('forwards the Go struct name through the tool runner', () => {
+    const result = runTool('json-to-struct', '{"name":"Maeve"}', {
+      goOptions: { structName: 'ApiResponse' },
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.output).toEqual({
+      kind: 'go',
+      value: [
+        'type ApiResponse struct {',
+        '\tName string `json:"name"`',
+        '}',
+      ].join('\n'),
+    })
+  })
+
   it('returns a readable error for malformed XML', () => {
     const result = runTool('xml-to-json', '<root><name></root>')
 

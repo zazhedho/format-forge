@@ -9,6 +9,7 @@ describe('tool output actions', () => {
     expect(getOutputStatusLabel({ kind: 'csv', value: '' })).toBe('Valid CSV')
     expect(getOutputStatusLabel({ kind: 'yaml', value: '' })).toBe('Valid YAML')
     expect(getOutputStatusLabel({ kind: 'xml', value: '' })).toBe('Valid XML')
+    expect(getOutputStatusLabel({ kind: 'go', value: '' })).toBe('Generated Go')
     expect(getOutputStatusLabel({ kind: 'status' })).toBe('')
   })
 
@@ -39,6 +40,14 @@ describe('tool output actions', () => {
 
     expect(copyText(result)).toBe(value)
     expect(downloadData(result)).toEqual({ content: value, extension: 'xml', type: 'application/xml;charset=utf-8' })
+  })
+
+  it('uses raw Go output for copy and Go download', () => {
+    const value = 'type Root struct {}'
+    const result = { ok: true as const, output: { kind: 'go' as const, value } }
+
+    expect(copyText(result)).toBe(value)
+    expect(downloadData(result)).toEqual({ content: value, extension: 'go', type: 'text/plain;charset=utf-8' })
   })
 
   it('uses TSV for table copy and CSV for table download', () => {

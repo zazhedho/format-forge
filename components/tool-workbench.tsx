@@ -6,6 +6,7 @@ import { copyText, downloadData, getOutputStatusLabel } from '@/lib/tools/output
 import { runTool } from '@/lib/tools/run-tool'
 import { parseJson } from '@/lib/json/parse'
 import type { JsonToXmlOptions } from '@/lib/json/xml'
+import type { JsonToGoStructOptions } from '@/lib/json/go-struct'
 import type { ToolId } from '@/lib/tools/registry'
 import { JsonEditor } from './json-editor'
 import { StatusMessage } from './status-message'
@@ -41,18 +42,22 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
     declaration: true,
     format: true,
   })
+  const [goOptions, setGoOptions] = useState<Required<JsonToGoStructOptions>>({ structName: 'Root' })
   const [fullscreen, setFullscreen] = useState(false)
   const [notice, setNotice] = useState('')
   const [copied, setCopied] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   const isXmlToJson = toolId === 'xml-to-json'
+  const isJsonToStruct = toolId === 'json-to-struct'
   const conversionTips = isXmlToJson ? xmlConversionTips : jsonConversionTips
 
   const result = useMemo(
     () => toolId === 'json-to-xml'
       ? runTool(toolId, source, { formatMode, xmlOptions })
-      : runTool(toolId, source, { formatMode }),
-    [toolId, source, formatMode, xmlOptions]
+      : isJsonToStruct
+        ? runTool(toolId, source, { formatMode, goOptions })
+        : runTool(toolId, source, { formatMode }),
+    [toolId, source, formatMode, xmlOptions, goOptions, isJsonToStruct]
   )
   const hasSource = source.trim().length > 0
 
@@ -206,6 +211,20 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
         </div>
       )}
 
+      {isJsonToStruct && (
+        <div className="xml-options go-struct-options" aria-label="Go struct options">
+          <label className="xml-option-field">
+            <span>Struct Name</span>
+            <input
+              type="text"
+              value={goOptions.structName}
+              onChange={(event) => setGoOptions({ structName: event.target.value })}
+              aria-label="Struct Name"
+            />
+          </label>
+        </div>
+      )}
+
       <input
         ref={fileInput}
         className="visually-hidden"
@@ -240,7 +259,7 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
 
         <section className="pane output-pane" aria-label="Tool output" aria-live="polite">
           <div className="pane-header">
-            <span>{toolId === 'json-to-xml' ? 'XML OUTPUT' : isXmlToJson ? 'JSON OUTPUT' : 'OUTPUT'}</span>
+            <span>{toolId === 'json-to-xml' ? 'XML OUTPUT' : isXmlToJson ? 'JSON OUTPUT' : isJsonToStruct ? 'GO OUTPUT' : 'OUTPUT'}</span>
             {hasSource && result.ok && result.output.kind !== 'status' && (
               <StatusMessage validLabel={getOutputStatusLabel(result.output)} />
             )}
@@ -250,13 +269,13 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
             <TableView model={result.output.model} />
           )}
 
-          {result.ok && (result.output.kind === 'text' || result.output.kind === 'csv' || result.output.kind === 'yaml' || result.output.kind === 'xml') && (
+          {result.ok && (result.output.kind === 'text' || result.output.kind === 'csv' || result.output.kind === 'yaml' || result.output.kind === 'xml' || result.output.kind === 'go') && (
             <TextOutput
               value={result.output.value}
               warnings={result.output.warnings}
               collapsible={toolId === 'json-formatter'}
-              ariaLabel={toolId === 'json-to-csv' ? 'CSV output' : toolId === 'json-to-yaml' ? 'YAML output' : toolId === 'json-to-xml' ? 'XML output' : isXmlToJson ? 'JSON output' : undefined}
-              plainText={result.output.kind === 'csv' || result.output.kind === 'yaml' || result.output.kind === 'xml'}
+              ariaLabel={toolId === 'json-to-csv' ? 'CSV output' : toolId === 'json-to-yaml' ? 'YAML output' : toolId === 'json-to-xml' ? 'XML output' : isXmlToJson ? 'JSON output' : isJsonToStruct ? 'Go struct output' : undefined}
+              plainText={result.output.kind === 'csv' || result.output.kind === 'yaml' || result.output.kind === 'xml' || result.output.kind === 'go'}
             />
           )}
 

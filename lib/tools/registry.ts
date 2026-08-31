@@ -32,6 +32,14 @@ export const tools = [
     output: 'xml',
   },
   {
+    id: 'json-to-struct',
+    title: 'JSON to Struct',
+    category: 'JSON',
+    href: '/json-to-struct',
+    description: 'Generate Go structs with JSON tags from your data.',
+    output: 'go',
+  },
+  {
     id: 'xml-to-json',
     title: 'XML to JSON',
     category: 'XML',
