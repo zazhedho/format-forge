@@ -74,7 +74,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const primaryTools = tools.filter((tool) => tool.id !== 'json-to-csv' && tool.id !== 'json-to-yaml' && tool.id !== 'json-to-xml' && tool.id !== 'xml-to-json' && tool.id !== 'json-to-struct')
+  const navbarToolIds: ToolId[] = ['json-to-table', 'json-formatter', 'compare-text', 'json-to-struct']
+  const navbarTools = tools
+    .filter((tool) => navbarToolIds.includes(tool.id))
+    .sort((left, right) => navbarToolIds.indexOf(left.id) - navbarToolIds.indexOf(right.id))
+  const mobileJsonTools = tools.filter((tool) => tool.id !== 'json-to-csv' && tool.id !== 'json-to-yaml' && tool.id !== 'json-to-xml' && tool.id !== 'xml-to-json' && tool.id !== 'json-to-struct')
 
   return (
     <ToolSessionContext.Provider value={sessionContext}>
@@ -86,7 +90,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav className="primary-nav" aria-label="Primary navigation">
             <span className="nav-category">JSON Tools</span>
-            {primaryTools.map((tool) => {
+            {navbarTools.map((tool) => {
               const isActive = normalizedPathname === tool.href
               return (
                 <Link
@@ -102,9 +106,22 @@ export function AppShell({ children }: { children: ReactNode }) {
             <details ref={moreToolsRef} className="more-tools">
               <summary>
                 <span>More Tools</span>
-                <ChevronDownIcon />
+                <ChevronDownIcon className="dropdown-caret" />
               </summary>
               <div className="more-tools-menu" onClick={() => { moreToolsRef.current?.removeAttribute('open') }}>
+                <span className="more-tools-section">JSON Tools</span>
+                <Link href="/string-to-json" className={`more-tools-item ${normalizedPathname === '/string-to-json' ? 'active' : ''}`} aria-current={normalizedPathname === '/string-to-json' ? 'page' : undefined}>
+                  <span>String to JSON</span>
+                </Link>
+                <Link href="/json-to-string" className={`more-tools-item ${normalizedPathname === '/json-to-string' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-to-string' ? 'page' : undefined}>
+                  <span>JSON to String</span>
+                </Link>
+                <Link href="/json-fixer" className={`more-tools-item ${normalizedPathname === '/json-fixer' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-fixer' ? 'page' : undefined}>
+                  <span>JSON Fixer</span>
+                </Link>
+                <Link href="/json-validator" className={`more-tools-item ${normalizedPathname === '/json-validator' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-validator' ? 'page' : undefined}>
+                  <span>JSON Validator</span>
+                </Link>
                 <span className="more-tools-section">Converters</span>
                 <Link
                   href="/json-to-yaml"
@@ -134,14 +151,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 >
                   <span>JSON to CSV</span>
                 </Link>
-                <span className="more-tools-section">Code Generation</span>
-                <Link
-                  href="/json-to-struct"
-                  className={`more-tools-item ${normalizedPathname === '/json-to-struct' ? 'active' : ''}`}
-                  aria-current={normalizedPathname === '/json-to-struct' ? 'page' : undefined}
-                >
-                  <span>JSON to Struct</span>
-                </Link>
                 <span className="more-tools-section">Encoding</span>
                 <div className="more-tools-item">
                   <span>Base64 / JWT</span>
@@ -153,11 +162,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <details ref={mobileToolsRef} className="mobile-tools">
             <summary aria-label="Open tools menu">
               <span>Tools</span>
-              <ChevronDownIcon />
+              <ChevronDownIcon className="dropdown-caret" />
             </summary>
             <div className="more-tools-menu mobile-tools-menu" onClick={() => { mobileToolsRef.current?.removeAttribute('open') }}>
               <span className="more-tools-section">JSON Tools</span>
-              {primaryTools.map((tool) => {
+              {mobileJsonTools.map((tool) => {
                 const isActive = normalizedPathname === tool.href
                 return (
                   <Link
