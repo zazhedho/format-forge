@@ -41,6 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const normalizedPathname = pathname.replace(/\/+$/, '')
   const [sessions, setSessions] = useState<Partial<Record<ToolId, ToolSession>>>({})
   const moreToolsRef = useRef<HTMLDetailsElement>(null)
+  const mobileToolsRef = useRef<HTMLDetailsElement>(null)
   const sessionContext = useMemo<ToolSessionContextValue>(() => ({
     sessions,
     updateSession: (toolId, update) => {
@@ -53,12 +54,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const closeOnOutsideClick = (event: PointerEvent) => {
-      const menu = moreToolsRef.current
-      if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false
+      for (const menu of [moreToolsRef.current, mobileToolsRef.current]) {
+        if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false
+      }
     }
     const closeOnEscape = (event: KeyboardEvent) => {
-      const menu = moreToolsRef.current
-      if (event.key === 'Escape' && menu?.open) {
+      const menu = [moreToolsRef.current, mobileToolsRef.current].find((item) => item?.open)
+      if (event.key === 'Escape' && menu) {
         menu.open = false
         menu.querySelector<HTMLElement>('summary')?.focus()
       }
@@ -72,6 +74,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const primaryTools = tools.filter((tool) => tool.id !== 'json-to-csv' && tool.id !== 'json-to-yaml' && tool.id !== 'json-to-xml' && tool.id !== 'xml-to-json' && tool.id !== 'json-to-struct')
+
   return (
     <ToolSessionContext.Provider value={sessionContext}>
       <div className="app-shell">
@@ -82,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav className="primary-nav" aria-label="Primary navigation">
             <span className="nav-category">JSON Tools</span>
-            {tools.filter((tool) => tool.id !== 'json-to-csv' && tool.id !== 'json-to-yaml' && tool.id !== 'json-to-xml' && tool.id !== 'xml-to-json' && tool.id !== 'json-to-struct').map((tool) => {
+            {primaryTools.map((tool) => {
               const isActive = normalizedPathname === tool.href
               return (
                 <Link
@@ -146,6 +150,50 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </details>
           </nav>
+          <details ref={mobileToolsRef} className="mobile-tools">
+            <summary aria-label="Open tools menu">
+              <span>Tools</span>
+              <ChevronDownIcon />
+            </summary>
+            <div className="more-tools-menu mobile-tools-menu" onClick={() => { mobileToolsRef.current?.removeAttribute('open') }}>
+              <span className="more-tools-section">JSON Tools</span>
+              {primaryTools.map((tool) => {
+                const isActive = normalizedPathname === tool.href
+                return (
+                  <Link
+                    key={tool.id}
+                    href={tool.href}
+                    className={`more-tools-item ${isActive ? 'active' : ''}`}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    <span>{tool.title}</span>
+                  </Link>
+                )
+              })}
+              <span className="more-tools-section">Converters</span>
+              <Link href="/json-to-yaml" className={`more-tools-item ${normalizedPathname === '/json-to-yaml' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-to-yaml' ? 'page' : undefined}>
+                <span>JSON to YAML</span>
+              </Link>
+              <Link href="/json-to-xml" className={`more-tools-item ${normalizedPathname === '/json-to-xml' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-to-xml' ? 'page' : undefined}>
+                <span>JSON to XML</span>
+              </Link>
+              <Link href="/xml-to-json" className={`more-tools-item ${normalizedPathname === '/xml-to-json' ? 'active' : ''}`} aria-current={normalizedPathname === '/xml-to-json' ? 'page' : undefined}>
+                <span>XML to JSON</span>
+              </Link>
+              <Link href="/json-to-csv" className={`more-tools-item ${normalizedPathname === '/json-to-csv' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-to-csv' ? 'page' : undefined}>
+                <span>JSON to CSV</span>
+              </Link>
+              <span className="more-tools-section">Code Generation</span>
+              <Link href="/json-to-struct" className={`more-tools-item ${normalizedPathname === '/json-to-struct' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-to-struct' ? 'page' : undefined}>
+                <span>JSON to Struct</span>
+              </Link>
+              <span className="more-tools-section">Encoding</span>
+              <div className="more-tools-item">
+                <span>Base64 / JWT</span>
+                <span className="badge-upcoming">Soon</span>
+              </div>
+            </div>
+          </details>
         </header>
         {children}
         <footer className="site-footer">
