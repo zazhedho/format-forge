@@ -7,7 +7,7 @@ import { toTableModel } from '../json/table'
 import { tableToCsv } from '../json/table-export'
 import { validateJson } from '../json/validate'
 import { jsonToYaml } from '../json/yaml'
-import { jsonToXml, type JsonToXmlOptions } from '../json/xml'
+import { jsonToXml, xmlToJson, type JsonToXmlOptions } from '../json/xml'
 import type { TableModel } from '../json/types'
 import type { ToolId } from './registry'
 
@@ -53,6 +53,17 @@ export function runTool(
       return {
         ok: false,
         error: { message: error instanceof Error ? error.message : 'Could not convert JSON to XML' },
+      }
+    }
+  }
+
+  if (toolId === 'xml-to-json') {
+    try {
+      return { ok: true, output: { kind: 'text', value: JSON.stringify(xmlToJson(source), null, 2) } }
+    } catch (error) {
+      return {
+        ok: false,
+        error: { message: error instanceof Error ? error.message : 'Could not convert XML to JSON' },
       }
     }
   }

@@ -48,6 +48,20 @@ describe('runTool', () => {
     })
   })
 
+  it('returns formatted JSON output for XML to JSON', () => {
+    expect(runTool('xml-to-json', '<root><name>Maeve</name></root>')).toEqual({
+      ok: true,
+      output: { kind: 'text', value: '{\n  "root": {\n    "name": "Maeve"\n  }\n}' },
+    })
+  })
+
+  it('returns a readable error for malformed XML', () => {
+    const result = runTool('xml-to-json', '<root><name></root>')
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.error.message).toMatch(/Invalid XML:/)
+  })
+
   it('returns text output for the formatter', () => {
     expect(runTool('json-formatter', '{"name":"Maeve"}', { formatMode: 'minify' })).toEqual({
       ok: true,

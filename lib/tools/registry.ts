@@ -32,6 +32,14 @@ export const tools = [
     output: 'xml',
   },
   {
+    id: 'xml-to-json',
+    title: 'XML to JSON',
+    category: 'XML',
+    href: '/xml-to-json',
+    description: 'Convert XML into readable JSON with attributes and text nodes.',
+    output: 'text',
+  },
+  {
     id: 'json-formatter',
     title: 'JSON Formatter',
     category: 'JSON',

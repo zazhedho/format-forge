@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { samples } from '@/lib/tools/samples'
-import { copyText, downloadData } from '@/lib/tools/output'
+import { copyText, downloadData, getOutputStatusLabel } from '@/lib/tools/output'
 import { runTool } from '@/lib/tools/run-tool'
 import { parseJson } from '@/lib/json/parse'
 import type { JsonToXmlOptions } from '@/lib/json/xml'
@@ -20,6 +20,19 @@ import {
   MinimizeIcon,
 } from './icons'
 
+const jsonConversionTips = [
+  'Ensure valid JSON syntax',
+  'Use double quotes for strings',
+  'Check for trailing commas',
+  'Verify proper nesting of objects and arrays',
+]
+const xmlConversionTips = [
+  'Ensure valid XML syntax',
+  'Close every element with a matching tag',
+  'Use quoted values for attributes',
+  'Keep one root element in the document',
+]
+
 export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
   const { source, setSource, formatMode, setFormatMode } = useToolSession(toolId)
   const [xmlOptions, setXmlOptions] = useState<Required<JsonToXmlOptions>>({
@@ -32,6 +45,8 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
   const [notice, setNotice] = useState('')
   const [copied, setCopied] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
+  const isXmlToJson = toolId === 'xml-to-json'
+  const conversionTips = isXmlToJson ? xmlConversionTips : jsonConversionTips
 
   const result = useMemo(
     () => toolId === 'json-to-xml'
@@ -195,7 +210,7 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
         ref={fileInput}
         className="visually-hidden"
         type="file"
-        accept=".json,.txt,application/json,text/plain"
+        accept={isXmlToJson ? '.xml,.txt,application/xml,text/xml,text/plain' : '.json,.txt,application/json,text/plain'}
         onChange={(event) => {
           const file = event.target.files?.[0]
           if (file) void loadFile(file)
@@ -217,17 +232,17 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
           value={source}
           onChange={setSource}
           onUpload={(file) => void loadFile(file)}
-          placeholder={toolId === 'string-to-json' ? 'Enter an escaped JSON string here...' : toolId === 'json-to-string' ? 'Enter JSON here...' : undefined}
+          label={isXmlToJson ? 'XML INPUT' : undefined}
+          ariaLabel={isXmlToJson ? 'XML input' : undefined}
+          placeholder={isXmlToJson ? 'Paste or type XML here, or drag and drop a .xml file...' : toolId === 'string-to-json' ? 'Enter an escaped JSON string here...' : toolId === 'json-to-string' ? 'Enter JSON here...' : undefined}
+          dropLabel={isXmlToJson ? 'Drop XML file to load' : undefined}
         />
 
         <section className="pane output-pane" aria-label="Tool output" aria-live="polite">
           <div className="pane-header">
-            <span>{toolId === 'json-to-xml' ? 'XML OUTPUT' : 'OUTPUT'}</span>
-            {hasSource && !(result.ok && result.output.kind === 'status') && (
-              <StatusMessage
-                error={result.ok ? undefined : result.error}
-                validLabel={toolId === 'json-to-xml' ? 'Valid XML' : undefined}
-              />
+            <span>{toolId === 'json-to-xml' ? 'XML OUTPUT' : isXmlToJson ? 'JSON OUTPUT' : 'OUTPUT'}</span>
+            {hasSource && result.ok && result.output.kind !== 'status' && (
+              <StatusMessage validLabel={getOutputStatusLabel(result.output)} />
             )}
           </div>
 
@@ -240,7 +255,7 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
               value={result.output.value}
               warnings={result.output.warnings}
               collapsible={toolId === 'json-formatter'}
-              ariaLabel={toolId === 'json-to-csv' ? 'CSV output' : toolId === 'json-to-yaml' ? 'YAML output' : toolId === 'json-to-xml' ? 'XML output' : undefined}
+              ariaLabel={toolId === 'json-to-csv' ? 'CSV output' : toolId === 'json-to-yaml' ? 'YAML output' : toolId === 'json-to-xml' ? 'XML output' : isXmlToJson ? 'JSON output' : undefined}
               plainText={result.output.kind === 'csv' || result.output.kind === 'yaml' || result.output.kind === 'xml'}
             />
           )}
@@ -275,11 +290,11 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
           )}
 
           {hasSource && !result.ok && (
-            <div className="error-output-card">
+            <div className="error-output-card" role="alert">
               <div className="error-card-box">
                 <div className="error-card-header">
                   <AlertCircleIcon />
-                  <span>Parsing Error</span>
+                  <span>Conversion Error</span>
                 </div>
                 <p className="error-message-text">{result.error.message}</p>
                 {result.error.line && result.error.column && (
@@ -287,6 +302,12 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
                     Line {result.error.line}, Column {result.error.column}
                   </div>
                 )}
+                <div className="error-tips">
+                  <h4 className="error-tips-title">Tips:</h4>
+                  <ul className="error-tips-list">
+                    {conversionTips.map((tip) => <li key={tip}>{tip}</li>)}
+                  </ul>
+                </div>
               </div>
             </div>
           )}

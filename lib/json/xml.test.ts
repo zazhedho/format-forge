@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { jsonToXml } from './xml'
+import { jsonToXml, xmlToJson } from './xml'
 
 describe('jsonToXml', () => {
   it('serializes objects with a root element and readable indentation', () => {
@@ -46,5 +46,38 @@ describe('jsonToXml', () => {
       declaration: false,
       format: false,
     })).toBe('<catalog><tags><tag>json</tag><tag>tools</tag></tags></catalog>')
+  })
+})
+
+describe('xmlToJson', () => {
+  it('converts XML elements into JSON while preserving the root', () => {
+    expect(xmlToJson('<root><name>Maeve</name></root>')).toEqual({
+      root: { name: 'Maeve' },
+    })
+  })
+
+  it('maps attributes, text nodes, and repeated elements to JSON conventions', () => {
+    expect(xmlToJson('<root><user id="42">Maeve</user><user id="43">Jon</user></root>')).toEqual({
+      root: {
+        user: [
+          { '#text': 'Maeve', '@id': '42' },
+          { '#text': 'Jon', '@id': '43' },
+        ],
+      },
+    })
+  })
+
+  it('infers safe element scalar values and ignores the XML declaration', () => {
+    expect(xmlToJson('<?xml version="1.0"?><root><count>2</count><active>true</active></root>')).toEqual({
+      root: { count: 2, active: true },
+    })
+  })
+
+  it('rejects malformed XML with a readable error', () => {
+    expect(() => xmlToJson('<root><name></root>')).toThrow(/Invalid XML:/)
+  })
+
+  it('rejects XML documents with multiple root elements', () => {
+    expect(() => xmlToJson('<root /><other />')).toThrow('one root element')
   })
 })

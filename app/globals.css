@@ -1539,6 +1539,10 @@ p, blockquote, li, .lede {
 
 .error-output-card {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 24px;
   overflow: auto;
   background: var(--bg-editor);
@@ -1555,6 +1559,7 @@ p, blockquote, li, .lede {
 }
 
 .error-card-box {
+  width: min(100%, 560px);
   padding: 16px;
   border-radius: var(--radius-md);
   background: #fff1f2;
@@ -1565,10 +1570,38 @@ p, blockquote, li, .lede {
 }
 
 .error-message-text {
+  margin: 0;
   font-family: var(--font-mono);
   font-size: 13px;
   color: #9f1239;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.error-tips {
+  padding: 12px 14px;
+  border: 1px solid rgba(225, 29, 72, 0.14);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.error-tips-title {
+  margin: 0 0 8px;
+  color: #9f1239;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: none;
+}
+
+.error-tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  color: #881337;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .error-location-tag {

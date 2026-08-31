@@ -1,10 +1,25 @@
 import { tableToCsv, tableToTsv } from '../json/table-export'
-import type { ToolRunResult } from './run-tool'
+import type { ToolOutput, ToolRunResult } from './run-tool'
 
 export type DownloadData = {
   content: string
   extension: 'csv' | 'json' | 'yaml' | 'xml'
   type: string
+}
+
+export function getOutputStatusLabel(output: ToolOutput) {
+  switch (output.kind) {
+    case 'csv':
+      return 'Valid CSV'
+    case 'yaml':
+      return 'Valid YAML'
+    case 'xml':
+      return 'Valid XML'
+    case 'status':
+      return ''
+    default:
+      return 'Valid JSON'
+  }
 }
 
 export function copyText(result: ToolRunResult) {

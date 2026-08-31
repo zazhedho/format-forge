@@ -34,17 +34,19 @@ export function ToolToolbar({
   copied = false,
   formatMode = 'pretty',
 }: Props) {
+  const inputFormat = toolId === 'xml-to-json' ? 'XML' : 'JSON'
+
   return (
     <div className="tool-toolbar" aria-label="Tool actions">
       <div className="toolbar-section" role="group" aria-label="Input actions">
         <h1 className="tool-title">{getTool(toolId).title}</h1>
         <span className="toolbar-label">Input</span>
         <div className="toolbar-group">
-          <button className="button button-primary" type="button" onClick={onSample} title="Load sample JSON">
+          <button className="button button-primary" type="button" onClick={onSample} title={`Load sample ${inputFormat}`}>
             <SparklesIcon />
             <span>Sample</span>
           </button>
-          <button className="button" type="button" onClick={onUpload} title="Upload JSON or text file">
+          <button className="button" type="button" onClick={onUpload} title={`Upload ${inputFormat} or text file`}>
             <UploadIcon />
             <span>Upload</span>
           </button>

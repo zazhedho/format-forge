@@ -1,4 +1,5 @@
 import XMLBuilder from 'fast-xml-builder'
+import { XMLParser, XMLValidator } from 'fast-xml-parser'
 import type { JsonPrimitive, JsonValue } from './types'
 
 type XmlValue = JsonPrimitive | XmlValue[] | { [key: string]: XmlValue }
@@ -68,4 +69,30 @@ export function jsonToXml(value: JsonValue, options: JsonToXmlOptions = {}) {
   return options.declaration === false
     ? xml
     : `<?xml version="1.0" encoding="UTF-8"?>\n${xml}`
+}
+
+export function xmlToJson(source: string): JsonValue {
+  if (!source.trim()) throw new Error('XML input is empty')
+
+  const validation = XMLValidator.validate(source)
+  if (validation !== true) {
+    throw new Error(`Invalid XML: ${validation.err.msg}`)
+  }
+
+  const parsed = new XMLParser({
+    attributeNamePrefix: '@',
+    textNodeName: '#text',
+    ignoreAttributes: false,
+    parseAttributeValue: false,
+    parseTagValue: true,
+    trimValues: true,
+    ignoreDeclaration: true,
+    ignorePiTags: true,
+  }).parse(source) as JsonValue
+
+  if (!isObject(parsed) || Object.keys(parsed).length !== 1) {
+    throw new Error('Invalid XML: document must contain one root element')
+  }
+
+  return parsed
 }

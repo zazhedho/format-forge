@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { downloadData, copyText } from './output'
+import { downloadData, copyText, getOutputStatusLabel } from './output'
 import { toTableModel } from '../json/table'
 
 describe('tool output actions', () => {
+  it('uses the generated format for output status labels', () => {
+    expect(getOutputStatusLabel({ kind: 'table', model: toTableModel({ name: 'Maeve' }) })).toBe('Valid JSON')
+    expect(getOutputStatusLabel({ kind: 'text', value: '{}' })).toBe('Valid JSON')
+    expect(getOutputStatusLabel({ kind: 'csv', value: '' })).toBe('Valid CSV')
+    expect(getOutputStatusLabel({ kind: 'yaml', value: '' })).toBe('Valid YAML')
+    expect(getOutputStatusLabel({ kind: 'xml', value: '' })).toBe('Valid XML')
+    expect(getOutputStatusLabel({ kind: 'status' })).toBe('')
+  })
+
   it('uses text output for copy and JSON download', () => {
     const result = { ok: true as const, output: { kind: 'text' as const, value: '{"name":"Maeve"}' } }
 

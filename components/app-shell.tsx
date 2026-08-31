@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav className="primary-nav" aria-label="Primary navigation">
             <span className="nav-category">JSON Tools</span>
-            {tools.filter((tool) => tool.id !== 'json-to-csv' && tool.id !== 'json-to-yaml' && tool.id !== 'json-to-xml').map((tool) => {
+            {tools.filter((tool) => tool.id !== 'json-to-csv' && tool.id !== 'json-to-yaml' && tool.id !== 'json-to-xml' && tool.id !== 'xml-to-json').map((tool) => {
               const isActive = normalizedPathname === tool.href
               return (
                 <Link
@@ -115,6 +115,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   aria-current={normalizedPathname === '/json-to-xml' ? 'page' : undefined}
                 >
                   <span>JSON to XML</span>
+                </Link>
+                <Link
+                  href="/xml-to-json"
+                  className={`more-tools-item ${normalizedPathname === '/xml-to-json' ? 'active' : ''}`}
+                  aria-current={normalizedPathname === '/xml-to-json' ? 'page' : undefined}
+                >
+                  <span>XML to JSON</span>
                 </Link>
                 <Link
                   href="/json-to-csv"
