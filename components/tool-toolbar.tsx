@@ -59,7 +59,7 @@ export function ToolToolbar({
         <div className="toolbar-section toolbar-section-output" role="group" aria-label="Output actions">
           <span className="toolbar-label">Output</span>
           <div className="toolbar-group">
-            {(toolId === 'json-formatter' || toolId === 'string-to-json') && (
+            {(toolId === 'json-formatter' || toolId === 'string-to-json' || toolId === 'json-to-string') && (
               <>
                 <button
                   className={`button ${formatMode === 'pretty' ? 'button-active' : ''}`}

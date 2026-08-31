@@ -169,7 +169,7 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
           value={source}
           onChange={setSource}
           onUpload={(file) => void loadFile(file)}
-          placeholder={toolId === 'string-to-json' ? 'Enter an escaped JSON string here...' : undefined}
+          placeholder={toolId === 'string-to-json' ? 'Enter an escaped JSON string here...' : toolId === 'json-to-string' ? 'Enter JSON here...' : undefined}
         />
 
         <section className="pane output-pane" aria-label="Tool output" aria-live="polite">

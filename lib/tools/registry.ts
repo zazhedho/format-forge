@@ -24,6 +24,14 @@ export const tools = [
     output: 'text',
   },
   {
+    id: 'json-to-string',
+    title: 'JSON to String',
+    category: 'JSON',
+    href: '/json-to-string',
+    description: 'Convert JSON into a safely escaped string.',
+    output: 'text',
+  },
+  {
     id: 'json-fixer',
     title: 'JSON Fixer',
     category: 'JSON',

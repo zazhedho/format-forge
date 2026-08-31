@@ -14,6 +14,7 @@ export const samples: Record<ToolId, string> = {
   'json-to-table': sample,
   'json-formatter': sample,
   'string-to-json': stringSample,
+  'json-to-string': sample,
   'json-fixer': '{"name":"Maeve",}',
   'json-validator': sample,
 }

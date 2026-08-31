@@ -1,5 +1,6 @@
 import { fixJson } from '../json/fix'
 import { formatJson, minifyJson } from '../json/format'
+import { jsonToString } from '../json/json-to-string'
 import { parseJson } from '../json/parse'
 import { stringToJson } from '../json/string-to-json'
 import { toTableModel } from '../json/table'
@@ -29,6 +30,11 @@ export function runTool(toolId: ToolId, source: string, options: { formatMode?: 
 
   if (toolId === 'string-to-json') {
     const result = stringToJson(source, options.formatMode === 'minify' ? 'minify' : 'pretty')
+    return result.ok ? { ok: true, output: { kind: 'text', value: result.value } } : result
+  }
+
+  if (toolId === 'json-to-string') {
+    const result = jsonToString(source, options.formatMode === 'minify' ? 'minify' : 'pretty')
     return result.ok ? { ok: true, output: { kind: 'text', value: result.value } } : result
   }
 
