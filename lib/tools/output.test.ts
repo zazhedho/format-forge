@@ -24,6 +24,14 @@ describe('tool output actions', () => {
     expect(downloadData(result)).toEqual({ content: 'name: Maeve\n', extension: 'yaml', type: 'application/yaml;charset=utf-8' })
   })
 
+  it('uses raw XML output for copy and XML download', () => {
+    const value = '<?xml version="1.0" encoding="UTF-8"?>\n<root />'
+    const result = { ok: true as const, output: { kind: 'xml' as const, value } }
+
+    expect(copyText(result)).toBe(value)
+    expect(downloadData(result)).toEqual({ content: value, extension: 'xml', type: 'application/xml;charset=utf-8' })
+  })
+
   it('uses TSV for table copy and CSV for table download', () => {
     const result = { ok: true as const, output: { kind: 'table' as const, model: toTableModel({ name: 'Maeve' }) } }
 

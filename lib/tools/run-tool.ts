@@ -7,6 +7,7 @@ import { toTableModel } from '../json/table'
 import { tableToCsv } from '../json/table-export'
 import { validateJson } from '../json/validate'
 import { jsonToYaml } from '../json/yaml'
+import { jsonToXml } from '../json/xml'
 import type { TableModel } from '../json/types'
 import type { ToolId } from './registry'
 
@@ -14,6 +15,7 @@ export type ToolOutput =
   | { kind: 'table'; model: TableModel }
   | { kind: 'csv'; value: string; warnings?: string[] }
   | { kind: 'yaml'; value: string; warnings?: string[] }
+  | { kind: 'xml'; value: string; warnings?: string[] }
   | { kind: 'text'; value: string; warnings?: string[] }
   | { kind: 'status' }
 
@@ -35,6 +37,20 @@ export function runTool(toolId: ToolId, source: string, options: { formatMode?: 
   if (toolId === 'json-to-yaml') {
     const parsed = parseJson(source)
     return parsed.ok ? { ok: true, output: { kind: 'yaml', value: jsonToYaml(parsed.value) } } : parsed
+  }
+
+  if (toolId === 'json-to-xml') {
+    const parsed = parseJson(source)
+    if (!parsed.ok) return parsed
+
+    try {
+      return { ok: true, output: { kind: 'xml', value: jsonToXml(parsed.value) } }
+    } catch (error) {
+      return {
+        ok: false,
+        error: { message: error instanceof Error ? error.message : 'Could not convert JSON to XML' },
+      }
+    }
   }
 
   if (toolId === 'json-formatter') {

@@ -24,6 +24,14 @@ export const tools = [
     output: 'yaml',
   },
   {
+    id: 'json-to-xml',
+    title: 'JSON to XML',
+    category: 'JSON',
+    href: '/json-to-xml',
+    description: 'Convert JSON into XML with elements, attributes, and text nodes.',
+    output: 'xml',
+  },
+  {
     id: 'json-formatter',
     title: 'JSON Formatter',
     category: 'JSON',

@@ -21,6 +21,16 @@ describe('runTool', () => {
     })
   })
 
+  it('returns XML output for JSON to XML', () => {
+    expect(runTool('json-to-xml', '{"name":"Maeve"}')).toEqual({
+      ok: true,
+      output: {
+        kind: 'xml',
+        value: '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n  <name>Maeve</name>\n</root>',
+      },
+    })
+  })
+
   it('returns text output for the formatter', () => {
     expect(runTool('json-formatter', '{"name":"Maeve"}', { formatMode: 'minify' })).toEqual({
       ok: true,
