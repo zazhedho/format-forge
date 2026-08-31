@@ -27,6 +27,7 @@ function getToolIcon(id: string) {
 const toolChips: Record<string, string[]> = {
   'json-to-table': ['Spreadsheet View', 'Deep Search', 'CSV Export'],
   'json-to-csv': ['CSV Output', 'Quoted Values', 'Instant Export'],
+  'json-to-yaml': ['Readable Output', 'Nested Arrays', 'Instant Copy'],
   'json-formatter': ['2-Space Indent', 'Minify Mode', 'Instant Copy'],
   'json-fixer': ['Trailing Commas', 'Quote Fixes', 'Safe Repair'],
   'json-validator': ['Line/Col Locator', 'Syntax Check', 'Structure Stats'],

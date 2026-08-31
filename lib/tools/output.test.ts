@@ -17,6 +17,13 @@ describe('tool output actions', () => {
     expect(downloadData(result)).toEqual({ content: 'name,role\nMaeve,Engineer', extension: 'csv', type: 'text/csv;charset=utf-8' })
   })
 
+  it('uses raw YAML output for copy and YAML download', () => {
+    const result = { ok: true as const, output: { kind: 'yaml' as const, value: 'name: Maeve\n' } }
+
+    expect(copyText(result)).toBe('name: Maeve\n')
+    expect(downloadData(result)).toEqual({ content: 'name: Maeve\n', extension: 'yaml', type: 'application/yaml;charset=utf-8' })
+  })
+
   it('uses TSV for table copy and CSV for table download', () => {
     const result = { ok: true as const, output: { kind: 'table' as const, model: toTableModel({ name: 'Maeve' }) } }
 

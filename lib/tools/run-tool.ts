@@ -6,12 +6,14 @@ import { stringToJson } from '../json/string-to-json'
 import { toTableModel } from '../json/table'
 import { tableToCsv } from '../json/table-export'
 import { validateJson } from '../json/validate'
+import { jsonToYaml } from '../json/yaml'
 import type { TableModel } from '../json/types'
 import type { ToolId } from './registry'
 
 export type ToolOutput =
   | { kind: 'table'; model: TableModel }
   | { kind: 'csv'; value: string; warnings?: string[] }
+  | { kind: 'yaml'; value: string; warnings?: string[] }
   | { kind: 'text'; value: string; warnings?: string[] }
   | { kind: 'status' }
 
@@ -28,6 +30,11 @@ export function runTool(toolId: ToolId, source: string, options: { formatMode?: 
   if (toolId === 'json-to-csv') {
     const parsed = parseJson(source)
     return parsed.ok ? { ok: true, output: { kind: 'csv', value: tableToCsv(toTableModel(parsed.value)) } } : parsed
+  }
+
+  if (toolId === 'json-to-yaml') {
+    const parsed = parseJson(source)
+    return parsed.ok ? { ok: true, output: { kind: 'yaml', value: jsonToYaml(parsed.value) } } : parsed
   }
 
   if (toolId === 'json-formatter') {

@@ -14,6 +14,13 @@ describe('runTool', () => {
     })
   })
 
+  it('returns YAML output for JSON to YAML', () => {
+    expect(runTool('json-to-yaml', '{"name":"Maeve"}')).toEqual({
+      ok: true,
+      output: { kind: 'yaml', value: 'name: Maeve\n' },
+    })
+  })
+
   it('returns text output for the formatter', () => {
     expect(runTool('json-formatter', '{"name":"Maeve"}', { formatMode: 'minify' })).toEqual({
       ok: true,

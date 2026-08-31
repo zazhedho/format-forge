@@ -184,12 +184,13 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
             <TableView model={result.output.model} />
           )}
 
-          {result.ok && (result.output.kind === 'text' || result.output.kind === 'csv') && (
+          {result.ok && (result.output.kind === 'text' || result.output.kind === 'csv' || result.output.kind === 'yaml') && (
             <TextOutput
               value={result.output.value}
               warnings={result.output.warnings}
               collapsible={toolId === 'json-formatter'}
-              ariaLabel={toolId === 'json-to-csv' ? 'CSV output' : undefined}
+              ariaLabel={toolId === 'json-to-csv' ? 'CSV output' : toolId === 'json-to-yaml' ? 'YAML output' : undefined}
+              plainText={result.output.kind === 'csv' || result.output.kind === 'yaml'}
             />
           )}
 

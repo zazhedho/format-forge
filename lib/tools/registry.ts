@@ -16,6 +16,14 @@ export const tools = [
     output: 'csv',
   },
   {
+    id: 'json-to-yaml',
+    title: 'JSON to YAML',
+    category: 'JSON',
+    href: '/json-to-yaml',
+    description: 'Convert JSON objects and arrays into readable YAML.',
+    output: 'yaml',
+  },
+  {
     id: 'json-formatter',
     title: 'JSON Formatter',
     category: 'JSON',

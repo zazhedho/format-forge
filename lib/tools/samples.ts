@@ -14,6 +14,7 @@ const comparisonSample = sample.replace('"Analyst"', '"Product Analyst"')
 export const samples: Record<ToolId, string> = {
   'json-to-table': sample,
   'json-to-csv': sample,
+  'json-to-yaml': sample,
   'json-formatter': sample,
   'string-to-json': stringSample,
   'json-to-string': sample,

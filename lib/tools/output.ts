@@ -3,7 +3,7 @@ import type { ToolRunResult } from './run-tool'
 
 export type DownloadData = {
   content: string
-  extension: 'csv' | 'json'
+  extension: 'csv' | 'json' | 'yaml'
   type: string
 }
 
@@ -19,6 +19,9 @@ export function downloadData(result: ToolRunResult): DownloadData | null {
   }
   if (result.output.kind === 'csv') {
     return { content: result.output.value, extension: 'csv', type: 'text/csv;charset=utf-8' }
+  }
+  if (result.output.kind === 'yaml') {
+    return { content: result.output.value, extension: 'yaml', type: 'application/yaml;charset=utf-8' }
   }
   return { content: result.output.value, extension: 'json', type: 'application/json;charset=utf-8' }
 }

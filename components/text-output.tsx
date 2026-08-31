@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type FormEvent, type ClipboardEvent, type DragEvent } from 'react'
 import { getCollapsibleRanges } from '@/lib/json/collapse'
-import { highlightJson } from '@/lib/json/highlight'
+import { highlightJson, type HighlightedLine } from '@/lib/json/highlight'
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, InfoIcon } from './icons'
 
 export function TextOutput({
@@ -10,17 +10,27 @@ export function TextOutput({
   warnings = [],
   collapsible = false,
   ariaLabel = 'Formatted JSON output',
+  plainText = false,
 }: {
   value: string
   warnings?: string[]
   collapsible?: boolean
   ariaLabel?: string
+  plainText?: boolean
 }) {
   const gutterRef = useRef<HTMLDivElement>(null)
   const codeAreaRef = useRef<HTMLDivElement>(null)
   const [collapsedLines, setCollapsedLines] = useState<Set<number>>(new Set())
 
-  const highlightedLines = useMemo(() => highlightJson(value), [value])
+  const highlightedLines = useMemo<HighlightedLine[]>(() => {
+    if (!plainText) return highlightJson(value)
+    if (!value) return []
+    return value.split('\n').map((line, index) => ({
+      lineNumber: index + 1,
+      indentCount: 0,
+      tokens: line ? [{ type: 'text' as const, value: line }] : [],
+    }))
+  }, [plainText, value])
   const collapsibleRanges = useMemo(
     () => collapsible ? getCollapsibleRanges(highlightedLines) : new Map<number, number>(),
     [collapsible, highlightedLines]

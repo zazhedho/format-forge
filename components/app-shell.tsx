@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav className="primary-nav" aria-label="Primary navigation">
             <span className="nav-category">JSON Tools</span>
-            {tools.filter((tool) => tool.id !== 'json-to-csv').map((tool) => {
+            {tools.filter((tool) => tool.id !== 'json-to-csv' && tool.id !== 'json-to-yaml').map((tool) => {
               const isActive = normalizedPathname === tool.href
               return (
                 <Link
@@ -103,16 +103,19 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="more-tools-menu" onClick={() => { moreToolsRef.current?.removeAttribute('open') }}>
                 <span className="more-tools-section">Converters</span>
                 <Link
+                  href="/json-to-yaml"
+                  className={`more-tools-item ${normalizedPathname === '/json-to-yaml' ? 'active' : ''}`}
+                  aria-current={normalizedPathname === '/json-to-yaml' ? 'page' : undefined}
+                >
+                  <span>JSON to YAML</span>
+                </Link>
+                <Link
                   href="/json-to-csv"
                   className={`more-tools-item ${normalizedPathname === '/json-to-csv' ? 'active' : ''}`}
                   aria-current={normalizedPathname === '/json-to-csv' ? 'page' : undefined}
                 >
                   <span>JSON to CSV</span>
                 </Link>
-                <div className="more-tools-item">
-                  <span>JSON to YAML</span>
-                  <span className="badge-upcoming">Soon</span>
-                </div>
                 <span className="more-tools-section">Encoding</span>
                 <div className="more-tools-item">
                   <span>Base64 / JWT</span>
