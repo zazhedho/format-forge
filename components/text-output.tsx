@@ -9,10 +9,12 @@ export function TextOutput({
   value,
   warnings = [],
   collapsible = false,
+  ariaLabel = 'Formatted JSON output',
 }: {
   value: string
   warnings?: string[]
   collapsible?: boolean
+  ariaLabel?: string
 }) {
   const gutterRef = useRef<HTMLDivElement>(null)
   const codeAreaRef = useRef<HTMLDivElement>(null)
@@ -161,7 +163,7 @@ export function TextOutput({
           role="textbox"
           aria-multiline="true"
           aria-readonly="true"
-          aria-label="Formatted JSON output"
+          aria-label={ariaLabel}
           tabIndex={0}
         >
           {visibleLines.map((line) => {

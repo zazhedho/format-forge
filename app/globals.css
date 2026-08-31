@@ -334,6 +334,11 @@ p, blockquote, li, .lede {
   color: var(--text-primary);
 }
 
+.more-tools-item.active {
+  color: var(--accent-indigo);
+  background: var(--bg-surface-elevated);
+}
+
 .badge-upcoming {
   font-size: 9px;
   padding: 1px 6px;

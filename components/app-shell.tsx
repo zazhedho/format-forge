@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { tools, type ToolId } from '@/lib/tools/registry'
 import { ChevronDownIcon, ForgeLogo } from './icons'
 
@@ -40,6 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const normalizedPathname = pathname.replace(/\/+$/, '')
   const [sessions, setSessions] = useState<Partial<Record<ToolId, ToolSession>>>({})
+  const moreToolsRef = useRef<HTMLDetailsElement>(null)
   const sessionContext = useMemo<ToolSessionContextValue>(() => ({
     sessions,
     updateSession: (toolId, update) => {
@@ -49,6 +50,27 @@ export function AppShell({ children }: { children: ReactNode }) {
       }))
     },
   }), [sessions])
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const menu = moreToolsRef.current
+      if (menu?.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      const menu = moreToolsRef.current
+      if (event.key === 'Escape' && menu?.open) {
+        menu.open = false
+        menu.querySelector<HTMLElement>('summary')?.focus()
+      }
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [])
 
   return (
     <ToolSessionContext.Provider value={sessionContext}>
@@ -60,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav className="primary-nav" aria-label="Primary navigation">
             <span className="nav-category">JSON Tools</span>
-            {tools.map((tool) => {
+            {tools.filter((tool) => tool.id !== 'json-to-csv').map((tool) => {
               const isActive = normalizedPathname === tool.href
               return (
                 <Link
@@ -73,19 +95,22 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               )
             })}
-            <details className="more-tools">
+            <details ref={moreToolsRef} className="more-tools">
               <summary>
                 <span>More Tools</span>
                 <ChevronDownIcon />
               </summary>
-              <div className="more-tools-menu">
+              <div className="more-tools-menu" onClick={() => { moreToolsRef.current?.removeAttribute('open') }}>
                 <span className="more-tools-section">Converters</span>
+                <Link
+                  href="/json-to-csv"
+                  className={`more-tools-item ${normalizedPathname === '/json-to-csv' ? 'active' : ''}`}
+                  aria-current={normalizedPathname === '/json-to-csv' ? 'page' : undefined}
+                >
+                  <span>JSON to CSV</span>
+                </Link>
                 <div className="more-tools-item">
                   <span>JSON to YAML</span>
-                  <span className="badge-upcoming">Soon</span>
-                </div>
-                <div className="more-tools-item">
-                  <span>JSON to CSV</span>
                   <span className="badge-upcoming">Soon</span>
                 </div>
                 <span className="more-tools-section">Encoding</span>

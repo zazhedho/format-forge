@@ -8,6 +8,14 @@ export const tools = [
     output: 'table',
   },
   {
+    id: 'json-to-csv',
+    title: 'JSON to CSV',
+    category: 'JSON',
+    href: '/json-to-csv',
+    description: 'Convert JSON objects and arrays into CSV rows.',
+    output: 'csv',
+  },
+  {
     id: 'json-formatter',
     title: 'JSON Formatter',
     category: 'JSON',

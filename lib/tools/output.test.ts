@@ -10,6 +10,13 @@ describe('tool output actions', () => {
     expect(downloadData(result)).toEqual({ content: '{"name":"Maeve"}', extension: 'json', type: 'application/json;charset=utf-8' })
   })
 
+  it('uses raw CSV output for copy and CSV download', () => {
+    const result = { ok: true as const, output: { kind: 'csv' as const, value: 'name,role\nMaeve,Engineer' } }
+
+    expect(copyText(result)).toBe('name,role\nMaeve,Engineer')
+    expect(downloadData(result)).toEqual({ content: 'name,role\nMaeve,Engineer', extension: 'csv', type: 'text/csv;charset=utf-8' })
+  })
+
   it('uses TSV for table copy and CSV for table download', () => {
     const result = { ok: true as const, output: { kind: 'table' as const, model: toTableModel({ name: 'Maeve' }) } }
 

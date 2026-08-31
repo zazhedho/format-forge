@@ -17,5 +17,8 @@ export function downloadData(result: ToolRunResult): DownloadData | null {
   if (result.output.kind === 'table') {
     return { content: tableToCsv(result.output.model), extension: 'csv', type: 'text/csv;charset=utf-8' }
   }
+  if (result.output.kind === 'csv') {
+    return { content: result.output.value, extension: 'csv', type: 'text/csv;charset=utf-8' }
+  }
   return { content: result.output.value, extension: 'json', type: 'application/json;charset=utf-8' }
 }

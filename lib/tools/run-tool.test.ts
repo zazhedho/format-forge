@@ -7,6 +7,13 @@ describe('runTool', () => {
     expect(result).toEqual({ ok: true, output: { kind: 'table', model: expect.any(Object) } })
   })
 
+  it('returns CSV output for JSON to CSV', () => {
+    expect(runTool('json-to-csv', '[{"name":"Maeve","role":"Engineer"},{"name":"Jon"}]')).toEqual({
+      ok: true,
+      output: { kind: 'csv', value: 'name,role\nMaeve,Engineer\nJon,' },
+    })
+  })
+
   it('returns text output for the formatter', () => {
     expect(runTool('json-formatter', '{"name":"Maeve"}', { formatMode: 'minify' })).toEqual({
       ok: true,
