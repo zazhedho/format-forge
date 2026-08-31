@@ -5,6 +5,7 @@ import { samples } from '@/lib/tools/samples'
 import { copyText, downloadData } from '@/lib/tools/output'
 import { runTool } from '@/lib/tools/run-tool'
 import { parseJson } from '@/lib/json/parse'
+import type { JsonToXmlOptions } from '@/lib/json/xml'
 import type { ToolId } from '@/lib/tools/registry'
 import { JsonEditor } from './json-editor'
 import { StatusMessage } from './status-message'
@@ -21,14 +22,22 @@ import {
 
 export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
   const { source, setSource, formatMode, setFormatMode } = useToolSession(toolId)
+  const [xmlOptions, setXmlOptions] = useState<Required<JsonToXmlOptions>>({
+    rootElement: 'root',
+    arrayItem: 'item',
+    declaration: true,
+    format: true,
+  })
   const [fullscreen, setFullscreen] = useState(false)
   const [notice, setNotice] = useState('')
   const [copied, setCopied] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
 
   const result = useMemo(
-    () => runTool(toolId, source, { formatMode }),
-    [toolId, source, formatMode]
+    () => toolId === 'json-to-xml'
+      ? runTool(toolId, source, { formatMode, xmlOptions })
+      : runTool(toolId, source, { formatMode }),
+    [toolId, source, formatMode, xmlOptions]
   )
   const hasSource = source.trim().length > 0
 
@@ -143,6 +152,45 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
         formatMode={formatMode}
       />
 
+      {toolId === 'json-to-xml' && (
+        <div className="xml-options" aria-label="XML options">
+          <label className="xml-option-field">
+            <span>Root Element</span>
+            <input
+              type="text"
+              value={xmlOptions.rootElement}
+              onChange={(event) => setXmlOptions((current) => ({ ...current, rootElement: event.target.value }))}
+              aria-label="Root Element"
+            />
+          </label>
+          <label className="xml-option-field">
+            <span>Array Item</span>
+            <input
+              type="text"
+              value={xmlOptions.arrayItem}
+              onChange={(event) => setXmlOptions((current) => ({ ...current, arrayItem: event.target.value }))}
+              aria-label="Array Item"
+            />
+          </label>
+          <label className="xml-option-check">
+            <input
+              type="checkbox"
+              checked={xmlOptions.declaration}
+              onChange={(event) => setXmlOptions((current) => ({ ...current, declaration: event.target.checked }))}
+            />
+            <span>XML Declaration</span>
+          </label>
+          <label className="xml-option-check">
+            <input
+              type="checkbox"
+              checked={xmlOptions.format}
+              onChange={(event) => setXmlOptions((current) => ({ ...current, format: event.target.checked }))}
+            />
+            <span>Format Output</span>
+          </label>
+        </div>
+      )}
+
       <input
         ref={fileInput}
         className="visually-hidden"
@@ -174,9 +222,12 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
 
         <section className="pane output-pane" aria-label="Tool output" aria-live="polite">
           <div className="pane-header">
-            <span>OUTPUT</span>
+            <span>{toolId === 'json-to-xml' ? 'XML OUTPUT' : 'OUTPUT'}</span>
             {hasSource && !(result.ok && result.output.kind === 'status') && (
-              <StatusMessage error={result.ok ? undefined : result.error} />
+              <StatusMessage
+                error={result.ok ? undefined : result.error}
+                validLabel={toolId === 'json-to-xml' ? 'Valid XML' : undefined}
+              />
             )}
           </div>
 

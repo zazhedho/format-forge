@@ -10,20 +10,12 @@ const sample = `{
 }`
 const stringSample = JSON.stringify(sample)
 const comparisonSample = sample.replace('"Analyst"', '"Product Analyst"')
-const xmlSample = `{
-  "user": {
-    "@id": "42",
-    "name": "Maeve",
-    "bio": { "#text": "Build clearly." },
-    "roles": ["engineer", "writer"]
-  }
-}`
 
 export const samples: Record<ToolId, string> = {
   'json-to-table': sample,
   'json-to-csv': sample,
   'json-to-yaml': sample,
-  'json-to-xml': xmlSample,
+  'json-to-xml': sample,
   'json-formatter': sample,
   'string-to-json': stringSample,
   'json-to-string': sample,

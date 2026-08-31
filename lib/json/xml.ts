@@ -3,15 +3,12 @@ import type { JsonPrimitive, JsonValue } from './types'
 
 type XmlValue = JsonPrimitive | XmlValue[] | { [key: string]: XmlValue }
 
-const xmlBuilder = new XMLBuilder({
-  attributeNamePrefix: '@',
-  textNodeName: '#text',
-  format: true,
-  indentBy: '  ',
-  ignoreAttributes: false,
-  suppressEmptyNode: true,
-  sanitizeName: sanitizeXmlName,
-})
+export type JsonToXmlOptions = {
+  rootElement?: string
+  arrayItem?: string
+  declaration?: boolean
+  format?: boolean
+}
 
 function isObject(value: JsonValue): value is { [key: string]: JsonValue } {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -26,9 +23,13 @@ function sanitizeXmlName(name: string) {
   return /^[A-Za-z_]/.test(safeName) ? safeName : `_${safeName}`
 }
 
-function normalizeValue(value: JsonValue): XmlValue {
+function normalizeXmlName(name: string | undefined, fallback: string) {
+  return sanitizeXmlName(name?.trim() || fallback)
+}
+
+function normalizeValue(value: JsonValue, arrayItemName: string): XmlValue {
   if (Array.isArray(value)) {
-    return { item: value.map(normalizeValue) }
+    return { [arrayItemName]: value.map((item) => normalizeValue(item, arrayItemName)) }
   }
 
   if (!isObject(value)) return value
@@ -44,11 +45,27 @@ function normalizeValue(value: JsonValue): XmlValue {
         throw new Error('XML text nodes must use scalar values')
       }
 
-      return [key, normalizeValue(child)]
+      return [key, normalizeValue(child, arrayItemName)]
     })
   )
 }
 
-export function jsonToXml(value: JsonValue) {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n${xmlBuilder.build({ root: normalizeValue(value) }).trimEnd()}`
+export function jsonToXml(value: JsonValue, options: JsonToXmlOptions = {}) {
+  const rootElement = normalizeXmlName(options.rootElement, 'root')
+  const arrayItem = normalizeXmlName(options.arrayItem, 'item')
+  const format = options.format ?? true
+  const xmlBuilder = new XMLBuilder({
+    attributeNamePrefix: '@',
+    textNodeName: '#text',
+    format,
+    indentBy: '  ',
+    ignoreAttributes: false,
+    suppressEmptyNode: true,
+    sanitizeName: sanitizeXmlName,
+  })
+  const xml = xmlBuilder.build({ [rootElement]: normalizeValue(value, arrayItem) }).trimEnd()
+
+  return options.declaration === false
+    ? xml
+    : `<?xml version="1.0" encoding="UTF-8"?>\n${xml}`
 }

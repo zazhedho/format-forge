@@ -38,4 +38,13 @@ describe('jsonToXml', () => {
       'XML attributes must use scalar values'
     )
   })
+
+  it('uses custom root and array item names without a declaration or formatting', () => {
+    expect(jsonToXml({ tags: ['json', 'tools'] }, {
+      rootElement: 'catalog',
+      arrayItem: 'tag',
+      declaration: false,
+      format: false,
+    })).toBe('<catalog><tags><tag>json</tag><tag>tools</tag></tags></catalog>')
+  })
 })

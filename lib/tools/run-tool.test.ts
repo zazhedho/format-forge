@@ -31,6 +31,23 @@ describe('runTool', () => {
     })
   })
 
+  it('forwards JSON to XML options through the tool runner', () => {
+    expect(runTool('json-to-xml', '{"tags":["json","tools"]}', {
+      xmlOptions: {
+        rootElement: 'catalog',
+        arrayItem: 'tag',
+        declaration: false,
+        format: false,
+      },
+    })).toEqual({
+      ok: true,
+      output: {
+        kind: 'xml',
+        value: '<catalog><tags><tag>json</tag><tag>tools</tag></tags></catalog>',
+      },
+    })
+  })
+
   it('returns text output for the formatter', () => {
     expect(runTool('json-formatter', '{"name":"Maeve"}', { formatMode: 'minify' })).toEqual({
       ok: true,

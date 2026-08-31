@@ -7,7 +7,7 @@ import { toTableModel } from '../json/table'
 import { tableToCsv } from '../json/table-export'
 import { validateJson } from '../json/validate'
 import { jsonToYaml } from '../json/yaml'
-import { jsonToXml } from '../json/xml'
+import { jsonToXml, type JsonToXmlOptions } from '../json/xml'
 import type { TableModel } from '../json/types'
 import type { ToolId } from './registry'
 
@@ -23,7 +23,11 @@ export type ToolRunResult =
   | { ok: true; output: ToolOutput }
   | { ok: false; error: { message: string; line?: number; column?: number; position?: number }; warnings?: string[] }
 
-export function runTool(toolId: ToolId, source: string, options: { formatMode?: 'pretty' | 'minify' } = {}): ToolRunResult {
+export function runTool(
+  toolId: ToolId,
+  source: string,
+  options: { formatMode?: 'pretty' | 'minify'; xmlOptions?: JsonToXmlOptions } = {}
+): ToolRunResult {
   if (toolId === 'json-to-table') {
     const parsed = parseJson(source)
     return parsed.ok ? { ok: true, output: { kind: 'table', model: toTableModel(parsed.value) } } : parsed
@@ -44,7 +48,7 @@ export function runTool(toolId: ToolId, source: string, options: { formatMode?: 
     if (!parsed.ok) return parsed
 
     try {
-      return { ok: true, output: { kind: 'xml', value: jsonToXml(parsed.value) } }
+      return { ok: true, output: { kind: 'xml', value: jsonToXml(parsed.value, options.xmlOptions) } }
     } catch (error) {
       return {
         ok: false,
