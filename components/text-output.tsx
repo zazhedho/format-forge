@@ -1,21 +1,46 @@
 'use client'
 
-import { useLayoutEffect, useRef, useMemo, type KeyboardEvent, type FormEvent, type ClipboardEvent, type DragEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type FormEvent, type ClipboardEvent, type DragEvent } from 'react'
+import { getCollapsibleRanges } from '@/lib/json/collapse'
 import { highlightJson } from '@/lib/json/highlight'
-import { CheckIcon, InfoIcon } from './icons'
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, InfoIcon } from './icons'
 
 export function TextOutput({
   value,
   warnings = [],
+  collapsible = false,
 }: {
   value: string
   warnings?: string[]
+  collapsible?: boolean
 }) {
   const gutterRef = useRef<HTMLDivElement>(null)
   const codeAreaRef = useRef<HTMLDivElement>(null)
+  const [collapsedLines, setCollapsedLines] = useState<Set<number>>(new Set())
 
   const highlightedLines = useMemo(() => highlightJson(value), [value])
-  const lineCount = highlightedLines.length > 0 ? highlightedLines.length : (value ? value.split('\n').length : 1)
+  const collapsibleRanges = useMemo(
+    () => collapsible ? getCollapsibleRanges(highlightedLines) : new Map<number, number>(),
+    [collapsible, highlightedLines]
+  )
+  const visibleLines = useMemo(() => {
+    if (!collapsible || collapsedLines.size === 0) return highlightedLines
+
+    let hiddenUntil = 0
+    return highlightedLines.filter((line) => {
+      if (line.lineNumber <= hiddenUntil) return false
+
+      const endLine = collapsibleRanges.get(line.lineNumber)
+      if (endLine !== undefined && collapsedLines.has(line.lineNumber)) {
+        hiddenUntil = endLine - 1
+      }
+      return true
+    })
+  }, [collapsedLines, collapsible, collapsibleRanges, highlightedLines])
+
+  useEffect(() => {
+    setCollapsedLines(new Set())
+  }, [value, collapsible])
 
   useLayoutEffect(() => {
     const codeArea = codeAreaRef.current
@@ -36,7 +61,7 @@ export function TextOutput({
     const observer = new ResizeObserver(syncLineHeights)
     observer.observe(codeArea)
     return () => observer.disconnect()
-  }, [highlightedLines])
+  }, [visibleLines])
 
   function handleScroll() {
     if (gutterRef.current && codeAreaRef.current) {
@@ -82,15 +107,44 @@ export function TextOutput({
     e.preventDefault()
   }
 
+  function toggleCollapsed(lineNumber: number) {
+    setCollapsedLines((current) => {
+      const next = new Set(current)
+      if (next.has(lineNumber)) next.delete(lineNumber)
+      else next.add(lineNumber)
+      return next
+    })
+  }
+
   return (
     <div className="text-output">
       <div className="output-stage">
-        <div ref={gutterRef} className="editor-gutter" aria-hidden="true">
-          {Array.from({ length: lineCount }, (_, i) => (
-            <div key={i} className="gutter-line">
-              {i + 1}
-            </div>
-          ))}
+        <div ref={gutterRef} className="editor-gutter">
+          {visibleLines.length > 0
+            ? visibleLines.map((line) => {
+              const endLine = collapsibleRanges.get(line.lineNumber)
+              const canCollapse = endLine !== undefined && endLine > line.lineNumber
+              const isCollapsed = collapsedLines.has(line.lineNumber)
+
+              return (
+                <div key={line.lineNumber} className="gutter-line">
+                  {canCollapse && (
+                    <button
+                      className="collapse-toggle"
+                      type="button"
+                      aria-expanded={!isCollapsed}
+                      aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} JSON node on line ${line.lineNumber}`}
+                      title={`${isCollapsed ? 'Expand' : 'Collapse'} JSON node`}
+                      onClick={() => toggleCollapsed(line.lineNumber)}
+                    >
+                      {isCollapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
+                    </button>
+                  )}
+                  <span aria-hidden="true">{line.lineNumber}</span>
+                </div>
+              )
+            })
+            : <div className="gutter-line"><span aria-hidden="true">1</span></div>}
         </div>
 
         <div
@@ -110,27 +164,29 @@ export function TextOutput({
           aria-label="Formatted JSON output"
           tabIndex={0}
         >
-          {highlightedLines.map((line) => (
-            <div key={line.lineNumber} className="code-line">
-              <span className="line-code">
-                {Array.from({ length: line.indentCount }).map((_, i) => (
-                  <span key={i} className="indent-guide" aria-hidden="true" />
-                ))}
-                {line.tokens.length > 0 ? (
-                  line.tokens.map((token, tokenIdx) => (
-                    <span
-                      key={tokenIdx}
-                      className={`token token-${token.type}`}
-                    >
-                      {token.value}
-                    </span>
-                  ))
-                ) : (
-                  <span className="token-whitespace">&nbsp;</span>
-                )}
-              </span>
-            </div>
-          ))}
+          {visibleLines.map((line) => {
+            return (
+              <div key={line.lineNumber} className="code-line">
+                <span className="line-code">
+                  {Array.from({ length: line.indentCount }).map((_, i) => (
+                    <span key={i} className="indent-guide" aria-hidden="true" />
+                  ))}
+                  {line.tokens.length > 0 ? (
+                    line.tokens.map((token, tokenIdx) => (
+                      <span
+                        key={tokenIdx}
+                        className={`token token-${token.type}`}
+                      >
+                        {token.value}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="token-whitespace">&nbsp;</span>
+                  )}
+                </span>
+              </div>
+            )
+          })}
         </div>
       </div>
 

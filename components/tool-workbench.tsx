@@ -185,7 +185,11 @@ export function ToolWorkbench({ toolId }: { toolId: ToolId }) {
           )}
 
           {result.ok && result.output.kind === 'text' && (
-            <TextOutput value={result.output.value} warnings={result.output.warnings} />
+            <TextOutput
+              value={result.output.value}
+              warnings={result.output.warnings}
+              collapsible={toolId === 'json-formatter'}
+            />
           )}
 
           {result.ok && result.output.kind === 'status' && (
