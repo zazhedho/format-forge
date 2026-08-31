@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ToolId } from '@/lib/tools/registry'
 import { getTool } from '@/lib/tools/registry'
 import { ToolWorkbench } from './tool-workbench'
+import { CompareTextWorkbench } from './compare-text-workbench'
 import { ChevronRightIcon } from './icons'
 
 export function ToolRoute({ toolId }: { toolId: ToolId }) {
@@ -32,7 +33,7 @@ export function ToolRoute({ toolId }: { toolId: ToolId }) {
           </span>
         </div>
       </div>
-      <ToolWorkbench toolId={toolId} />
+      {toolId === 'compare-text' ? <CompareTextWorkbench /> : <ToolWorkbench toolId={toolId} />}
     </main>
   )
 }

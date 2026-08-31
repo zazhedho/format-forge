@@ -7,7 +7,10 @@ type Props = {
   value: string
   onChange: (value: string) => void
   onUpload: (file: File) => void
+  label?: string
+  ariaLabel?: string
   placeholder?: string
+  dropLabel?: string
 }
 
 function preserveScrollPosition(event: ClipboardEvent<HTMLTextAreaElement>) {
@@ -20,7 +23,15 @@ function preserveScrollPosition(event: ClipboardEvent<HTMLTextAreaElement>) {
   })
 }
 
-export function JsonEditor({ value, onChange, onUpload, placeholder = 'Paste or type JSON here, or drag and drop a .json file...' }: Props) {
+export function JsonEditor({
+  value,
+  onChange,
+  onUpload,
+  label = 'JSON INPUT',
+  ariaLabel = 'JSON input',
+  placeholder = 'Paste or type JSON here, or drag and drop a .json file...',
+  dropLabel = 'Drop JSON file to load',
+}: Props) {
   const [isDragging, setIsDragging] = useState(false)
   const gutterRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -93,10 +104,10 @@ export function JsonEditor({ value, onChange, onUpload, placeholder = 'Paste or 
   }
 
   return (
-    <section className="pane" aria-labelledby="json-input-label">
+    <section className="pane" aria-label={label}>
       <div className="pane-header">
         <div className="pane-title">
-          <span id="json-input-label">JSON INPUT</span>
+          <span>{label}</span>
           {value && (
             <span className="pane-meta">
               <span>{lineCount} {lineCount === 1 ? 'line' : 'lines'}</span>
@@ -115,7 +126,7 @@ export function JsonEditor({ value, onChange, onUpload, placeholder = 'Paste or 
         {isDragging && (
           <div className="drop-overlay">
             <UploadIcon style={{ width: 32, height: 32 }} />
-            <span>Drop JSON file to load</span>
+            <span>{dropLabel}</span>
           </div>
         )}
         <div className="editor-container">
@@ -143,7 +154,7 @@ export function JsonEditor({ value, onChange, onUpload, placeholder = 'Paste or 
             onScroll={handleScroll}
             spellCheck={false}
             wrap="soft"
-            aria-label="JSON input"
+            aria-label={ariaLabel}
             placeholder={placeholder}
           />
         </div>

@@ -29,6 +29,7 @@ const toolChips: Record<string, string[]> = {
   'json-formatter': ['2-Space Indent', 'Minify Mode', 'Instant Copy'],
   'json-fixer': ['Trailing Commas', 'Quote Fixes', 'Safe Repair'],
   'json-validator': ['Line/Col Locator', 'Syntax Check', 'Structure Stats'],
+  'compare-text': ['Line Diff', 'Side by Side', 'Any Text'],
 }
 
 export default function HomePage() {

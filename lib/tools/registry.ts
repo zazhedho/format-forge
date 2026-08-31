@@ -47,6 +47,14 @@ export const tools = [
     description: 'Check JSON syntax and locate parsing errors.',
     output: 'status',
   },
+  {
+    id: 'compare-text',
+    title: 'Compare Text',
+    category: 'Text',
+    href: '/compare-text',
+    description: 'Compare any two text values line by line.',
+    output: 'diff',
+  },
 ] as const
 
 export type ToolId = (typeof tools)[number]['id']

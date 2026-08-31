@@ -10,6 +10,7 @@ type FormatMode = 'pretty' | 'minify'
 
 type ToolSession = {
   source: string
+  comparisonSource: string
   formatMode: FormatMode
 }
 
@@ -18,7 +19,7 @@ type ToolSessionContextValue = {
   updateSession: (toolId: ToolId, update: Partial<ToolSession>) => void
 }
 
-const emptySession: ToolSession = { source: '', formatMode: 'pretty' }
+const emptySession: ToolSession = { source: '', comparisonSource: '', formatMode: 'pretty' }
 const ToolSessionContext = createContext<ToolSessionContextValue | null>(null)
 
 export function useToolSession(toolId: ToolId) {
@@ -28,7 +29,9 @@ export function useToolSession(toolId: ToolId) {
   const session = context.sessions[toolId] ?? emptySession
   return {
     ...session,
+    comparisonSource: session.comparisonSource ?? '',
     setSource: (source: string) => context.updateSession(toolId, { source }),
+    setComparisonSource: (comparisonSource: string) => context.updateSession(toolId, { comparisonSource }),
     setFormatMode: (formatMode: FormatMode) => context.updateSession(toolId, { formatMode }),
   }
 }

@@ -9,6 +9,7 @@ const sample = `{
   "tags": ["json", "tools"]
 }`
 const stringSample = JSON.stringify(sample)
+const comparisonSample = sample.replace('"Analyst"', '"Product Analyst"')
 
 export const samples: Record<ToolId, string> = {
   'json-to-table': sample,
@@ -17,4 +18,9 @@ export const samples: Record<ToolId, string> = {
   'json-to-string': sample,
   'json-fixer': '{"name":"Maeve",}',
   'json-validator': sample,
+  'compare-text': sample,
 }
+
+export const comparisonSamples = {
+  'compare-text': comparisonSample,
+} as const
