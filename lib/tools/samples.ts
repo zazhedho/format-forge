@@ -8,10 +8,12 @@ const sample = `{
   ],
   "tags": ["json", "tools"]
 }`
+const stringSample = JSON.stringify(sample)
 
 export const samples: Record<ToolId, string> = {
   'json-to-table': sample,
   'json-formatter': sample,
+  'string-to-json': stringSample,
   'json-fixer': '{"name":"Maeve",}',
   'json-validator': sample,
 }

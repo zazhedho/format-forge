@@ -7,6 +7,7 @@ type Props = {
   value: string
   onChange: (value: string) => void
   onUpload: (file: File) => void
+  placeholder?: string
 }
 
 function preserveScrollPosition(event: ClipboardEvent<HTMLTextAreaElement>) {
@@ -19,7 +20,7 @@ function preserveScrollPosition(event: ClipboardEvent<HTMLTextAreaElement>) {
   })
 }
 
-export function JsonEditor({ value, onChange, onUpload }: Props) {
+export function JsonEditor({ value, onChange, onUpload, placeholder = 'Paste or type JSON here, or drag and drop a .json file...' }: Props) {
   const [isDragging, setIsDragging] = useState(false)
   const gutterRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -143,7 +144,7 @@ export function JsonEditor({ value, onChange, onUpload }: Props) {
             spellCheck={false}
             wrap="soft"
             aria-label="JSON input"
-            placeholder="Paste or type JSON here, or drag and drop a .json file..."
+            placeholder={placeholder}
           />
         </div>
       </div>

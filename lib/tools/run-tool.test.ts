@@ -14,6 +14,13 @@ describe('runTool', () => {
     })
   })
 
+  it('returns converted text output for String to JSON', () => {
+    expect(runTool('string-to-json', JSON.stringify('{"name":"Maeve"}'))).toEqual({
+      ok: true,
+      output: { kind: 'text', value: '{\n  "name": "Maeve"\n}' },
+    })
+  })
+
   it('returns a status output for the validator', () => {
     expect(runTool('json-validator', '{"ok":true}')).toEqual({
       ok: true,
