@@ -1,5 +1,5 @@
-import type { Metadata } from 'next'
 import { ToolRoute } from '@/components/tool-route'
+import { createToolMetadata } from '@/lib/site'
 
-export const metadata: Metadata = { title: 'JSON Formatter', description: 'Pretty-print or minify valid JSON instantly.' }
+export const metadata = createToolMetadata('json-formatter')
 export default function JsonFormatterPage() { return <ToolRoute toolId="json-formatter" /> }

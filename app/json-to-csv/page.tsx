@@ -1,10 +1,7 @@
-import type { Metadata } from 'next'
 import { ToolRoute } from '@/components/tool-route'
+import { createToolMetadata } from '@/lib/site'
 
-export const metadata: Metadata = {
-  title: 'JSON to CSV',
-  description: 'Convert JSON objects and arrays into CSV rows.',
-}
+export const metadata = createToolMetadata('json-to-csv')
 
 export default function JsonToCsvPage() {
   return <ToolRoute toolId="json-to-csv" />

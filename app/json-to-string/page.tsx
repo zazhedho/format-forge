@@ -1,10 +1,7 @@
-import type { Metadata } from 'next'
 import { ToolRoute } from '@/components/tool-route'
+import { createToolMetadata } from '@/lib/site'
 
-export const metadata: Metadata = {
-  title: 'JSON to String',
-  description: 'Convert JSON into a safely escaped string.',
-}
+export const metadata = createToolMetadata('json-to-string')
 
 export default function JsonToStringPage() {
   return <ToolRoute toolId="json-to-string" />

@@ -1,10 +1,7 @@
-import type { Metadata } from 'next'
 import { ToolRoute } from '@/components/tool-route'
+import { createToolMetadata } from '@/lib/site'
 
-export const metadata: Metadata = {
-  title: 'JSON to XML',
-  description: 'Convert JSON into XML with elements, attributes, and text nodes.',
-}
+export const metadata = createToolMetadata('json-to-xml')
 
 export default function JsonToXmlPage() {
   return <ToolRoute toolId="json-to-xml" />

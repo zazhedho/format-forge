@@ -1,5 +1,5 @@
-import type { Metadata } from 'next'
 import { ToolRoute } from '@/components/tool-route'
+import { createToolMetadata } from '@/lib/site'
 
-export const metadata: Metadata = { title: 'JSON Fixer', description: 'Apply conservative repairs to common JSON syntax mistakes.' }
+export const metadata = createToolMetadata('json-fixer')
 export default function JsonFixerPage() { return <ToolRoute toolId="json-fixer" /> }

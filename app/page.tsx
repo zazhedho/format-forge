@@ -1,4 +1,6 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+import { siteConfig } from '@/lib/site'
 import { tools } from '@/lib/tools/registry'
 import {
   TableIcon,
@@ -8,6 +10,25 @@ import {
   ChevronRightIcon,
   SparklesIcon,
 } from '@/components/icons'
+
+export const metadata: Metadata = {
+  title: { absolute: siteConfig.name },
+  description: siteConfig.description,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description,
+  },
+  twitter: {
+    card: 'summary',
+    title: siteConfig.name,
+    description: siteConfig.description,
+  },
+}
 
 function getToolIcon(id: string) {
   switch (id) {

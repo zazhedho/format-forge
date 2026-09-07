@@ -1,10 +1,7 @@
-import type { Metadata } from 'next'
 import { ToolRoute } from '@/components/tool-route'
+import { createToolMetadata } from '@/lib/site'
 
-export const metadata: Metadata = {
-  title: 'Compare Text',
-  description: 'Compare any two text values line by line.',
-}
+export const metadata = createToolMetadata('compare-text')
 
 export default function CompareTextPage() {
   return <ToolRoute toolId="compare-text" />

@@ -4,7 +4,7 @@ export const tools = [
     title: 'JSON to Table',
     category: 'JSON',
     href: '/json-to-table',
-    description: 'Inspect objects and arrays as readable, expandable tables.',
+    description: 'Inspect JSON objects and arrays as readable, expandable tables.',
     output: 'table',
   },
   {

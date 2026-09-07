@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 import { AppShell } from '@/components/app-shell'
+import { siteConfig } from '@/lib/site'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: { default: 'Format Forge', template: '%s · Format Forge' },
-  description: 'Local-first tools for inspecting and transforming developer data.',
+  metadataBase: new URL(siteConfig.url),
+  title: { default: siteConfig.name, template: `%s · ${siteConfig.name}` },
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
