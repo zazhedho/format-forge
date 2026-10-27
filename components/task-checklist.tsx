@@ -1,75 +1,15 @@
 'use client'
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
-import { getInsertIndex, getMoveTarget, moveItemNextTo, previewOrder } from '@/lib/tasks/reorder'
+import { addColumn as addChecklistColumn, defaultCheckId, isTaskComplete, readChecklist, removeColumns, type ChecklistData } from '@/lib/tasks/checklist'
+import { getInsertIndex, getMoveTarget, moveItemNextTo, previewOrder, reconcileOrder } from '@/lib/tasks/reorder'
 import { GripIcon, SparklesIcon, TrashIcon } from './icons'
 
-export type TaskColumn = { id: string; name: string }
-export type Task = { id: string; title: string; checks: Record<string, boolean> }
-type ChecklistData = { columns: TaskColumn[]; tasks: Task[] }
-type LegacyTask = { id: string; title: string; done: boolean }
 type ReorderDrag = { id: string; order: string[]; initialOrder: string[] }
 
-const storageKey = 'format-forge:tasks'
-const defaultCheckId = '__default_done__'
-const starterColumnIds = new Set(['fixing', 'pr', 'merged', 'finish'])
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function isColumn(value: unknown): value is TaskColumn {
-  if (!isRecord(value)) return false
-  return typeof value.id === 'string' && value.id !== '' && typeof value.name === 'string' && value.name.trim() !== ''
-}
-
-function isLegacyTask(value: unknown): value is LegacyTask {
-  if (!isRecord(value)) return false
-  return typeof value.id === 'string' && typeof value.title === 'string' && value.title.trim() !== '' && typeof value.done === 'boolean'
-}
-
-function isTask(value: unknown): value is Task {
-  if (!isRecord(value) || !isRecord(value.checks)) return false
-  return typeof value.id === 'string' && typeof value.title === 'string' && value.title.trim() !== '' && Object.values(value.checks).every((check) => typeof check === 'boolean')
-}
-
-function readChecklist(value: unknown): ChecklistData {
-  if (Array.isArray(value)) {
-    return {
-      columns: [],
-      tasks: value.filter(isLegacyTask).filter((task) => !task.id.startsWith('starter-')).map((task) => ({
-        id: task.id,
-        title: task.title,
-        checks: { [defaultCheckId]: task.done },
-      })),
-    }
-  }
-
-  if (!isRecord(value)) return { columns: [], tasks: [] }
-
-  const columns = Array.isArray(value.columns) ? value.columns.filter(isColumn).filter((column) => !starterColumnIds.has(column.id)).map((column) => ({ ...column, name: column.name.trim() })) : []
-  const columnIds = new Set<string>()
-  const uniqueColumns = columns.filter((column) => {
-    if (columnIds.has(column.id)) return false
-    columnIds.add(column.id)
-    return true
-  })
-  const tasks = Array.isArray(value.tasks) ? value.tasks.filter(isTask).filter((task) => !task.id.startsWith('starter-')).map((task) => ({
-    id: task.id,
-    title: task.title,
-    checks: uniqueColumns.length
-      ? Object.fromEntries(uniqueColumns.map((column) => [column.id, task.checks[column.id] === true]))
-      : { [defaultCheckId]: task.checks[defaultCheckId] === true },
-  })) : []
-
-  return { columns: uniqueColumns, tasks }
-}
-
-function isTaskComplete(task: Task, columns: TaskColumn[]) {
-  return columns.length > 0
-    ? columns.every((column) => task.checks[column.id] === true)
-    : task.checks[defaultCheckId] === true
-}
+// v2 keeps the previous app version's list readable under the old key if this release is rolled back.
+const storageKey = 'format-forge:tasks:v2'
+const legacyStorageKey = 'format-forge:tasks'
 
 export function useTaskChecklist() {
   const [checklist, setChecklist] = useState<ChecklistData>({ columns: [], tasks: [] })
@@ -77,7 +17,7 @@ export function useTaskChecklist() {
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem(storageKey)
+      const stored = window.localStorage.getItem(storageKey) ?? window.localStorage.getItem(legacyStorageKey)
       if (stored !== null) setChecklist(readChecklist(JSON.parse(stored)))
     } catch {
       // Keep the checklist empty if browser storage is unavailable or invalid.
@@ -165,22 +105,11 @@ export function useTaskChecklist() {
   }
 
   function clearColumns() {
-    setChecklist((current) => ({
-      columns: [],
-      tasks: current.tasks.map((task) => ({ ...task, checks: { [defaultCheckId]: false } })),
-    }))
+    setChecklist((current) => removeColumns(current, current.columns.map((column) => column.id)))
   }
 
   function addColumn(name: string) {
-    const column = { id: crypto.randomUUID(), name: name.trim() }
-    if (!column.name) return
-    setChecklist((current) => ({
-      columns: [...current.columns, column],
-      tasks: current.tasks.map((task) => ({
-        ...task,
-        checks: Object.fromEntries([...current.columns, column].map((item) => [item.id, item.id === column.id ? false : task.checks[item.id] === true])),
-      })),
-    }))
+    setChecklist((current) => addChecklistColumn(current, name, () => crypto.randomUUID()))
   }
 
   function renameColumn(columnId: string, name: string) {
@@ -193,18 +122,7 @@ export function useTaskChecklist() {
   }
 
   function deleteColumn(columnId: string) {
-    setChecklist((current) => {
-      const columns = current.columns.filter((column) => column.id !== columnId)
-      return {
-        columns,
-        tasks: current.tasks.map((task) => ({
-          ...task,
-          checks: columns.length
-            ? Object.fromEntries(columns.map((column) => [column.id, task.checks[column.id] === true]))
-            : { [defaultCheckId]: false },
-        })),
-      }
-    })
+    setChecklist((current) => removeColumns(current, [columnId]))
   }
 
   function moveColumn(columnId: string, targetColumnId: string, after: boolean) {
@@ -242,13 +160,15 @@ function useDragReorder(options: DragReorderOptions) {
 
     const orderAtPointer = (current: ReorderDrag) => {
       const { axis, itemSelector, getItemId, scrollRef } = optionsRef.current
-      const middles = Array.from(scrollRef.current?.querySelectorAll<HTMLElement>(itemSelector) ?? [])
+      const items = Array.from(scrollRef.current?.querySelectorAll<HTMLElement>(itemSelector) ?? [])
+      const middles = items
         .filter((item) => getItemId(item) !== current.id)
         .map((item) => {
           const rect = item.getBoundingClientRect()
           return axis === 'y' ? rect.top + rect.height / 2 : rect.left + rect.width / 2
         })
-      return previewOrder(current.order, current.id, getInsertIndex(middles, pointerRef.current))
+      const renderedOrder = items.flatMap((item) => getItemId(item) ?? [])
+      return previewOrder(renderedOrder, current.id, getInsertIndex(middles, pointerRef.current))
     }
 
     // Each frame: scroll near the table edges, then move the dragged item to where the pointer is.
@@ -258,20 +178,23 @@ function useDragReorder(options: DragReorderOptions) {
       const pointer = pointerRef.current
       if (scroller) {
         const bounds = scroller.getBoundingClientRect()
-        const start = (axis === 'y' ? bounds.top : bounds.left) + getStartInset()
-        const end = axis === 'y' ? bounds.bottom : bounds.right
+        const start = Math.max(0, (axis === 'y' ? bounds.top : bounds.left) + getStartInset())
+        const end = Math.min(axis === 'y' ? window.innerHeight : window.innerWidth, axis === 'y' ? bounds.bottom : bounds.right)
         const edge = 48
+        const maxStep = 24
         const step = pointer < start + edge
-          ? -Math.ceil((start + edge - pointer) / 4)
-          : pointer > end - edge ? Math.ceil((pointer - end + edge) / 4) : 0
+          ? -Math.min(maxStep, Math.ceil((start + edge - pointer) / 4))
+          : pointer > end - edge ? Math.min(maxStep, Math.ceil((pointer - end + edge) / 4)) : 0
         if (step && axis === 'y') scroller.scrollTop += step
         else if (step) scroller.scrollLeft += step
       }
-      setDrag((current) => {
-        if (!current) return current
+      const current = dragRef.current
+      if (current) {
         const order = orderAtPointer(current)
-        return order.every((id, index) => id === current.order[index]) ? current : { ...current, order }
-      })
+        if (order.some((id, index) => id !== current.order[index]) || order.length !== current.order.length) {
+          setDrag((latest) => latest && latest.id === current.id ? { ...latest, order } : latest)
+        }
+      }
       frame = window.requestAnimationFrame(update)
     }
 
@@ -299,6 +222,7 @@ function useDragReorder(options: DragReorderOptions) {
     window.addEventListener('pointerup', handlePointerUp)
     window.addEventListener('pointercancel', handleCancel)
     window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('blur', handleCancel)
     return () => {
       window.cancelAnimationFrame(frame)
       document.body.classList.remove('task-dragging')
@@ -306,6 +230,7 @@ function useDragReorder(options: DragReorderOptions) {
       window.removeEventListener('pointerup', handlePointerUp)
       window.removeEventListener('pointercancel', handleCancel)
       window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('blur', handleCancel)
     }
   }, [draggingId])
 
@@ -360,8 +285,12 @@ export function TaskChecklistPanel({ columns, tasks, addTasks, loadSample, toggl
   })
   const tasksById = new Map(tasks.map((task) => [task.id, task]))
   const columnsById = new Map(columns.map((column) => [column.id, column]))
-  const displayedTasks = taskDrag.drag ? taskDrag.drag.order.flatMap((id) => tasksById.get(id) ?? []) : sortedTasks
-  const displayedColumns = columnDrag.drag ? columnDrag.drag.order.flatMap((id) => columnsById.get(id) ?? []) : columns
+  const displayedTasks = taskDrag.drag
+    ? reconcileOrder(taskDrag.drag.order, sortedTasks.map((task) => task.id)).flatMap((id) => tasksById.get(id) ?? [])
+    : sortedTasks
+  const displayedColumns = columnDrag.drag
+    ? reconcileOrder(columnDrag.drag.order, columns.map((column) => column.id)).flatMap((id) => columnsById.get(id) ?? [])
+    : columns
   const draggingTaskId = taskDrag.drag?.id ?? null
   const draggingColumnId = columnDrag.drag?.id ?? null
 
@@ -397,7 +326,7 @@ export function TaskChecklistPanel({ columns, tasks, addTasks, loadSample, toggl
   }
 
   function handleClearColumns() {
-    if (columns.length > 0 && window.confirm('Clear all columns? Your tasks will stay.')) clearColumns()
+    if (columns.length > 0 && window.confirm('Clear all columns? Your tasks stay, and tasks finished in every column stay marked done.')) clearColumns()
   }
 
   function handleSaveTaskName(event: FormEvent<HTMLFormElement>, taskId: string) {
@@ -423,7 +352,7 @@ export function TaskChecklistPanel({ columns, tasks, addTasks, loadSample, toggl
     event.preventDefault()
     moveTask(taskId, target.id, event.key === 'ArrowDown')
     window.requestAnimationFrame(() => {
-      tableBodyRef.current?.querySelector<HTMLButtonElement>(`tr[data-task-id="${taskId}"] .task-drag-handle`)?.focus()
+      tableBodyRef.current?.querySelector<HTMLButtonElement>(`tr[data-task-id="${CSS.escape(taskId)}"] .task-drag-handle`)?.focus()
     })
   }
 
@@ -434,7 +363,7 @@ export function TaskChecklistPanel({ columns, tasks, addTasks, loadSample, toggl
     event.preventDefault()
     moveColumn(columnId, target.id, event.key === 'ArrowRight')
     window.requestAnimationFrame(() => {
-      tableScrollRef.current?.querySelector<HTMLButtonElement>(`th[data-column-id="${columnId}"] .task-drag-handle`)?.focus()
+      tableScrollRef.current?.querySelector<HTMLButtonElement>(`th[data-column-id="${CSS.escape(columnId)}"] .task-drag-handle`)?.focus()
     })
   }
 
@@ -592,9 +521,7 @@ export function TaskChecklistPanel({ columns, tasks, addTasks, loadSample, toggl
                               className="task-drag-handle"
                               aria-label={`Reorder ${task.title}; drag or use arrow keys`}
                               title="Drag to reorder · arrow keys to move"
-                              onPointerDown={(event) => {
-                                if (sortMode === 'manual') taskDrag.startDrag(event, task.id, displayedTasks.map((item) => item.id))
-                              }}
+                              onPointerDown={(event) => taskDrag.startDrag(event, task.id, displayedTasks.map((item) => item.id))}
                               onKeyDown={(event) => handleTaskReorderKeyDown(event, task.id, index)}
                             >
                               <GripIcon />

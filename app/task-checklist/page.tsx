@@ -9,7 +9,7 @@ export const metadata = createPageMetadata(
 
 export default function TaskChecklistPage() {
   return (
-    <main className="page-container tool-page task-checklist-page">
+    <main className="page-container tool-page">
       <TaskChecklistWorkspace />
     </main>
   )

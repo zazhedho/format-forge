@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getInsertIndex, getMoveTarget, moveItemNextTo, previewOrder } from './reorder'
+import { getInsertIndex, getMoveTarget, moveItemNextTo, previewOrder, reconcileOrder } from './reorder'
 
 describe('getInsertIndex', () => {
   it('counts the rows whose middle is above the pointer', () => {
@@ -58,5 +58,11 @@ describe('moveItemNextTo', () => {
     expect(moveItemNextTo(items, 'x', 'b', true)).toBe(items)
     expect(moveItemNextTo(items, 'a', 'x', true)).toBe(items)
     expect(moveItemNextTo(items, 'a', 'a', true)).toBe(items)
+  })
+})
+
+describe('reconcileOrder', () => {
+  it('drops ids that no longer exist and appends new ones', () => {
+    expect(reconcileOrder(['c', 'a', 'gone'], ['a', 'b', 'c'])).toEqual(['c', 'a', 'b'])
   })
 })

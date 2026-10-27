@@ -27,3 +27,10 @@ export function moveItemNextTo<T extends { id: string }>(items: T[], id: string,
   next.splice(targetIndex + Number(after), 0, item!)
   return next
 }
+
+export function reconcileOrder(order: string[], ids: string[]) {
+  const existing = new Set(ids)
+  const kept = order.filter((id) => existing.has(id))
+  const keptIds = new Set(kept)
+  return [...kept, ...ids.filter((id) => !keptIds.has(id))]
+}
