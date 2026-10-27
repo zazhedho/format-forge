@@ -3,17 +3,13 @@ import { createPageMetadata } from '@/lib/site'
 
 export const metadata = createPageMetadata(
   'Task Checklist',
-  'Create and track a personal task checklist in your browser.',
+  'Create tasks and track workflow steps in customizable columns in your browser.',
   '/task-checklist',
 )
 
 export default function TaskChecklistPage() {
   return (
-    <main className="page-container task-checklist-page">
-      <header className="task-checklist-page-header">
-        <h1>Task Checklist</h1>
-        <p className="lede">Add tasks, track progress, and clear completed work.</p>
-      </header>
+    <main className="page-container tool-page task-checklist-page">
       <TaskChecklistWorkspace />
     </main>
   )

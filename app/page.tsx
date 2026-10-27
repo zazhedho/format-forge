@@ -56,7 +56,7 @@ const toolChips: Record<string, string[]> = {
   'json-fixer': ['Trailing Commas', 'Quote Fixes', 'Safe Repair'],
   'json-validator': ['Line/Col Locator', 'Syntax Check', 'Structure Stats'],
   'compare-text': ['Line Diff', 'Side by Side', 'Any Text'],
-  'task-checklist': ['Progress Tracking', 'Bulk Add', 'Browser Saved'],
+  'task-checklist': ['Progress Tracking', 'Custom Columns', 'Bulk Add'],
 }
 
 const catalogTools = [
@@ -66,7 +66,7 @@ const catalogTools = [
     title: 'Task Checklist',
     category: 'Workspace',
     href: '/task-checklist',
-    description: 'Create and track personal checklists directly in your browser.',
+    description: 'Create tasks and track workflow stages in customizable columns.',
   },
 ]
 
