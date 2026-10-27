@@ -108,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span>More Tools</span>
                 <ChevronDownIcon className="dropdown-caret" />
               </summary>
-              <div className="more-tools-menu" onClick={() => { moreToolsRef.current?.removeAttribute('open') }}>
+              <div className="more-tools-menu" onClick={(event) => { if (event.target instanceof Element && event.target.closest('a')) moreToolsRef.current?.removeAttribute('open') }}>
                 <span className="more-tools-section">JSON Tools</span>
                 <Link href="/string-to-json" className={`more-tools-item ${normalizedPathname === '/string-to-json' ? 'active' : ''}`} aria-current={normalizedPathname === '/string-to-json' ? 'page' : undefined}>
                   <span>String to JSON</span>
@@ -151,6 +151,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 >
                   <span>JSON to CSV</span>
                 </Link>
+                <span className="more-tools-section">Workspace</span>
+                <Link href="/task-checklist" className={`more-tools-item ${normalizedPathname === '/task-checklist' ? 'active' : ''}`} aria-current={normalizedPathname === '/task-checklist' ? 'page' : undefined}>
+                  <span>Task Checklist</span>
+                </Link>
                 <span className="more-tools-section">Encoding</span>
                 <div className="more-tools-item">
                   <span>Base64 / JWT</span>
@@ -164,7 +168,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span>Tools</span>
               <ChevronDownIcon className="dropdown-caret" />
             </summary>
-            <div className="more-tools-menu mobile-tools-menu" onClick={() => { mobileToolsRef.current?.removeAttribute('open') }}>
+            <div className="more-tools-menu mobile-tools-menu" onClick={(event) => { if (event.target instanceof Element && event.target.closest('a')) mobileToolsRef.current?.removeAttribute('open') }}>
               <span className="more-tools-section">JSON Tools</span>
               {mobileJsonTools.map((tool) => {
                 const isActive = normalizedPathname === tool.href
@@ -195,6 +199,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="more-tools-section">Code Generation</span>
               <Link href="/json-to-struct" className={`more-tools-item ${normalizedPathname === '/json-to-struct' ? 'active' : ''}`} aria-current={normalizedPathname === '/json-to-struct' ? 'page' : undefined}>
                 <span>JSON to Struct</span>
+              </Link>
+              <span className="more-tools-section">Workspace</span>
+              <Link href="/task-checklist" className={`more-tools-item ${normalizedPathname === '/task-checklist' ? 'active' : ''}`} aria-current={normalizedPathname === '/task-checklist' ? 'page' : undefined}>
+                <span>Task Checklist</span>
               </Link>
               <span className="more-tools-section">Encoding</span>
               <div className="more-tools-item">

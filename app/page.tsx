@@ -56,7 +56,19 @@ const toolChips: Record<string, string[]> = {
   'json-fixer': ['Trailing Commas', 'Quote Fixes', 'Safe Repair'],
   'json-validator': ['Line/Col Locator', 'Syntax Check', 'Structure Stats'],
   'compare-text': ['Line Diff', 'Side by Side', 'Any Text'],
+  'task-checklist': ['Progress Tracking', 'Bulk Add', 'Browser Saved'],
 }
+
+const catalogTools = [
+  ...tools,
+  {
+    id: 'task-checklist',
+    title: 'Task Checklist',
+    category: 'Workspace',
+    href: '/task-checklist',
+    description: 'Create and track personal checklists directly in your browser.',
+  },
+]
 
 export default function HomePage() {
   return (
@@ -84,7 +96,7 @@ export default function HomePage() {
       </section>
 
       <div className="tool-grid">
-        {tools.map((tool) => (
+        {catalogTools.map((tool) => (
           <Link className="tool-card" href={tool.href} key={tool.id}>
             <div className="tool-card-top">
               <div className="tool-icon-badge">{getToolIcon(tool.id)}</div>
